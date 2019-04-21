@@ -3,12 +3,18 @@ package main
 import(
 	"log"
 	"net/http"
-	"auth/token"
+	"github.com/obedtandadjaja/auth-go/auth"
 )
 
 func main() {
-	http.HandleFunc("/token", Token)
-	// http.HandleFunc("/welcome", Welcome)
+	http.Handle("/token", logRequestMiddleware(http.HandlerFunc(auth.Token)))
 
-	log.Fatal(http.ListenAndServe(":8000", nil))
+	log.Println(http.ListenAndServe(":8000", nil))
+}
+
+func logRequestMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Request received: %s\n", r)
+		next.ServeHTTP(w, r)
+	})
 }

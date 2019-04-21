@@ -1,6 +1,11 @@
 package auth
 
 import (
+	"log"
+	"time"
+	"encoding/json"
+	"net/http"
+
 	"github.com/dgrijalva/jwt-go"
 )
 
@@ -8,17 +13,21 @@ var jwtKey = []byte("secret-key")
 
 var users = map[string]string {
 	"user1@gmail.com": "password1",
-	"user2@gmail.com": "password2"
+	"user2@gmail.com": "password2",
 }
 
 type Credential struct {
-	Password string `json:"password"`
 	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type Claim struct {
-	Username string `json:"email"`
+	Email string `json:"email"`
 	jwt.StandardClaims
+}
+
+type TokenResponse struct {
+	Jwt string
 }
 
 func Token(w http.ResponseWriter, r *http.Request) {
@@ -32,14 +41,14 @@ func Token(w http.ResponseWriter, r *http.Request) {
 
 	expectedPassword, ok := users[cred.Email]
 
-	if !ok || expectedPassowrd != cred.Password {
-		w.WriteHeader(http.StatusUnathorized)
+	if !ok || expectedPassword != cred.Password {
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := &Claim{
-		Username: cred.Username,
+		Email: cred.Email,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -51,9 +60,12 @@ func Token(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 
-		w.WriteHeader(http.StatusInternalServerEror)
-		error
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
-	w.Write(tokenString)
+	w.Header().Set("Content-Type", "application/json")
+
+	response := TokenResponse{ Jwt: tokenString }
+	json.NewEncoder(w).Encode(response)
 }
