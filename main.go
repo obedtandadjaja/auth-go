@@ -4,12 +4,14 @@ import(
 	"log"
 	"net/http"
 	"github.com/obedtandadjaja/auth-go/api"
-
 	"database/sql"
+
     _ "github.com/lib/pq"
     "github.com/golang-migrate/migrate"
     "github.com/golang-migrate/migrate/database/postgres"
     _ "github.com/golang-migrate/migrate/source/file"
+
+	// "github.com/Masterminds/squirrel"
 )
 
 func main() {
@@ -40,11 +42,12 @@ func initDatabase() {
 		return
 	}
 
-    m, err := migrate.NewWithDatabaseInstance("file://./migrations", "postgres", driver)
+	// run migrations
+    migration, err := migrate.NewWithDatabaseInstance("file://./migrations", "postgres", driver)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-    m.Steps(2)
+    migration.Steps(2)
 }
