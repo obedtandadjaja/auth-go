@@ -3,11 +3,11 @@ package main
 import(
 	"log"
 	"net/http"
-	"github.com/obedtandadjaja/auth-go/auth"
+	"github.com/obedtandadjaja/auth-go/api"
 )
 
 func main() {
-	http.Handle("/token", logRequestMiddleware(http.HandlerFunc(auth.Token)))
+	http.Handle("/token", logRequestMiddleware(http.HandlerFunc(api.Token)))
 
 	log.Println(http.ListenAndServe(":8000", nil))
 }
