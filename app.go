@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"bytes"
+	"net/http/httputil"
 
 	"github.com/obedtandadjaja/auth-go/controller"
 
@@ -50,26 +50,11 @@ func (app *App) initializeRoutes(sr *controller.SharedResources) {
 
 func logRequestMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// java StringBuilder equivalent
-		var buffer bytes.Buffer
-
-		buffer.WriteString(fmt.Sprintf("%v %v %v\n", r.Method, r.URL, r.Proto))
-		buffer.WriteString(fmt.Sprintf("Host: %v\n", r.Host))
-
-		// print header
-		for name, headers := range r.Header {
-			for _, header := range headers {
-				buffer.WriteString(fmt.Sprintf("%v: %v | ", name, header))
-			}
+		requestDump, err := httputil.DumpRequest(r, true)
+		if err != nil {
+			log.Println(err)
 		}
-
-		// if post then print form body
-		if r.Method == "POST" {
-			r.ParseForm()
-			buffer.WriteString(r.Form.Encode())
-		}
-
-		log.Println(buffer.String())
+		log.Println(string(requestDump))
 
 		next.ServeHTTP(w, r)
 	})
