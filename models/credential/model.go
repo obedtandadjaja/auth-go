@@ -1,19 +1,20 @@
 package credential
 
 import (
-	"time"
 	"database/sql"
+
+	"github.com/lib/pq"
 )
 
 type Credential struct {
-	Id           int32
+	Id           int64
 	Identifier   string // can be email/username/phone
-	Password     string
-	Subject      string
-	LastSignedIn time.Time
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	IpAddress    string
+	Password     sql.NullString
+	Subject      sql.NullString
+	LastSignedIn pq.NullTime
+	CreatedAt    pq.NullTime
+	UpdatedAt    pq.NullTime
+	IpAddress    sql.NullString
 }
 
 func All(db *sql.DB) ([]*Credential, error) {

@@ -50,7 +50,7 @@ func processRequest(sr *SharedResources, request *TokenRequest) (*TokenResponse,
 		return &response, HandlerError{404, err}
 	}
 
-	if credential.Password != request.Password {
+	if credential.Password.Value() != request.Password {
 		return &response, HandlerError{401, errors.New("Invalid credentials")}
 	}
 
