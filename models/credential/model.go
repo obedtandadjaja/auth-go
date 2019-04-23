@@ -54,12 +54,7 @@ func buildFromRow(row *sql.Row) (*Credential, error) {
 	)
 
 	if err != nil {
-		if err == sql.ErrNoRows {
-			log.Println("no rows")
-			return &credential, err
-		} else {
-			return &credential, err
-		}
+		return &credential, err
 	}
 
 	return &credential, nil
