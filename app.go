@@ -15,32 +15,33 @@ import (
 
 type App struct {
 	Router *mux.Router
-	DB     *sql.DB
 }
 
 func (app *App) Initialize(username, password, dbName string) {
 	connectionString := fmt.Sprintf("user=%s, password=%s dbname=%s", username, password, dbName)
 
-	var err error
-	app.DB, err = sql.Open("postgres", connectionString)
+	db, err := sql.Open("postgres", connectionString)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	sharedResources := &handler.SharedResources{
+		DB: db,
+	}
+
 	app.runMigration()
 
 	app.Router = mux.NewRouter()
-	app.initializeRoutes()
+	app.initializeRoutes(sharedResources)
 }
 
-func (app *App) initializeRoutes() {
-	// app.Router.Handle("/token", logRequestMiddleware(http.HandlerFunc(api.Token)))
-
+func (app *App) initializeRoutes(SharedResources *SharedResources) {
 	for _, route := range routes {
 		app.Router.
 			Methods(route.Method).
 			Path(route.Pattern).
 			Name(route.Name).
-			Handler(logRequestMiddleware(route.HandlerFunc))
+			Handler(Handler{sharedResources, logRequestMiddleware(route.HandlerFunc)})
 	}
 }
 
