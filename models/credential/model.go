@@ -16,14 +16,14 @@ type Credential struct {
 	IpAddress    string
 }
 
-func All(db *sql.DB) ([]Credential, error) {
+func All(db *sql.DB) ([]*Credential, error) {
 	rows, err := db.Query("select * from credentials")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	credentials := []Credential{}
+	credentials := []*Credential{}
 	for rows.Next() {
 		credential, err := buildFromRow(rows)
 		if err != nil {
