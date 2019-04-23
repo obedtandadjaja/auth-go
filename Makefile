@@ -1,10 +1,12 @@
-DB_HOST ?= "localhost"
-DB_PORT ?= "5432"
-DB_USER ?= "obedt"
+ENV         ?= "development"
+DB_HOST     ?= "localhost"
+DB_PORT     ?= "5432"
+DB_USER     ?= "obedt"
 DB_PASSWORD ?= ""
-DB_NAME ?= "auth"
+DB_NAME     ?= "auth"
 
 run:
+	ENV=$(ENV)
 	DB_HOST=$(DB_HOST) \
 	DB_PORT=$(DB_PORT) \
 	DB_USER=$(DB_USER) \

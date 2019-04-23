@@ -19,9 +19,12 @@ import (
 type App struct {
 	Router *mux.Router
 	DB     *sql.DB
+	Env    string
 }
 
-func (app *App) Initialize(host string, port string, user string, password string, dbName string) {
+func (app *App) Initialize(env, host, port, user, password, dbName string) {
+	app.Env = env
+
 	err := app.initializeDB(host, port, user, password, dbName)
 	if err != nil {
 		log.Fatal(err)
@@ -30,11 +33,11 @@ func (app *App) Initialize(host string, port string, user string, password strin
 	app.runMigration()
 
 	app.Router = mux.NewRouter()
-	sharedResources := &controller.SharedResources{ DB: app.DB }
+	sharedResources := &controller.SharedResources{ DB: app.DB, Env: env }
 	app.initializeRoutes(sharedResources)
 }
 
-func (app *App) initializeDB(host string, port string, user string, password string, dbName string) error {
+func (app *App) initializeDB(host, port, user, password, dbName string) error {
 	connectionString := fmt.Sprintf(
 		"postgresql://%s:%s@%s:%s/%s?sslmode=disable",
 		user, password, host, port, dbName,

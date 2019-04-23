@@ -5,6 +5,7 @@ import "os"
 func main() {
 	app := App{}
 	app.Initialize(
+		os.Getenv("ENV"),
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_PORT"),
 		os.Getenv("DB_USER"),

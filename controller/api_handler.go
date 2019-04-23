@@ -25,7 +25,8 @@ func (error HandlerError) Status() int {
 }
 
 type SharedResources struct {
-	DB *sql.DB
+	DB  *sql.DB
+	Env string
 }
 
 type Handler struct {
@@ -41,7 +42,13 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		switch e := err.(type) {
 		case HttpError:
 			log.Printf("HTTP %d - %s\n", e.Status(), e)
-			http.Error(w, e.Error(), e.Status())
+
+			// on prod error codes >= 500 should not be returned
+			if h.SharedResources.Env == "production" && e.Status() <= 500 {
+				http.Error(w, "Internal Server Error", e.Status())
+			} else {
+				http.Error(w, e.Error(), e.Status())
+			}
 		default:
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
