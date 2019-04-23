@@ -34,7 +34,7 @@ type Handler struct {
 }
 
 // to satisfy http.Handler
-func (h Handler) serveHTTP(w http.ResponseWriter, r *http.Request) {
+func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err := h.Handler(h.SharedResources, w, r)
 
 	if err != nil {

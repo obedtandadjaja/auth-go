@@ -3,14 +3,15 @@ package controller
 import (
 	"net/http"
 	"encoding/json"
+	"errors"
 
 	"github.com/obedtandadjaja/auth-go/models/credential"
 	"github.com/obedtandadjaja/auth-go/auth/jwt"
 )
 
 type TokenRequest struct {
-	Identifier    string `json:"identifier"`
-	Password string `json:"password"`
+	Identifier string `json:"identifier"`
+	Password   string `json:"password"`
 }
 
 type TokenResponse struct {
@@ -18,31 +19,46 @@ type TokenResponse struct {
 }
 
 func Token(sr *SharedResources, w http.ResponseWriter, r *http.Request) error {
-	var request TokenRequest
-
-	err := json.NewDecoder(r.Body).Decode(&request)
+	request, err := parseRequest(r)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return err
+		return HandlerError{400, err}
 	}
 
-	credential, err := credential.FindBy(sr.DB, "identifier", request.Identifier)
-
-	if credential.Password != request.Password {
-		w.WriteHeader(http.StatusUnauthorized)
-		return err
-	}
-
-	tokenString, err := jwt.Generate(request.Identifier)
+	response, err := processRequest(sr, request)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
 		return err
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-
-	response := TokenResponse{ jwt: tokenString }
 	json.NewEncoder(w).Encode(response)
 
 	return nil
+}
+
+func parseRequest(r *http.Request) (*TokenRequest, error) {
+	var request TokenRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+
+	return &request, err
+}
+
+func processRequest(sr *SharedResources, request *TokenRequest) (*TokenResponse, error) {
+	var response TokenResponse
+
+	credential, err := credential.FindBy(sr.DB, "identifier", request.Identifier)
+	if err != nil {
+		return &response, HandlerError{404, err}
+	}
+
+	if credential.Password != request.Password {
+		return &response, HandlerError{401, errors.New("Invalid credentials")}
+	}
+
+	tokenString, err := jwt.Generate(request.Identifier)
+	if err != nil {
+		return &response, HandlerError{500, err}
+	}
+
+	response.jwt = tokenString
+	return &response, nil
 }
