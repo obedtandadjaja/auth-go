@@ -47,10 +47,10 @@ func processRequest(sr *SharedResources, request *TokenRequest) (*TokenResponse,
 
 	credential, err := credential.FindBy(sr.DB, "identifier", request.Identifier)
 	if err != nil {
-		return &response, HandlerError{404, err}
+		return &response, HandlerError{401, errors.New("Invalid credentials")}
 	}
 
-	if credential.Password.Value() != request.Password {
+	if value, _ := credential.Password.Value(); value != request.Password {
 		return &response, HandlerError{401, errors.New("Invalid credentials")}
 	}
 
