@@ -63,18 +63,6 @@ func (app *App) initializeRoutes(sr *controller.SharedResources) {
 	}
 }
 
-func logRequestMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		requestDump, err := httputil.DumpRequest(r, true)
-		if err != nil {
-			log.Println(err)
-		}
-		log.Println(string(requestDump))
-
-		next.ServeHTTP(w, r)
-	})
-}
-
 func (app *App) runMigration() {
 	driver, err := postgres.WithInstance(app.DB, &postgres.Config{})
 	if err != nil {
@@ -94,3 +82,17 @@ func (app *App) runMigration() {
 func (app *App) Run(addr string) {
 	log.Fatal(http.ListenAndServe(addr, app.Router))
 }
+
+// TODO: move this out to a middleware package
+func logRequestMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestDump, err := httputil.DumpRequest(r, true)
+		if err != nil {
+			log.Println(err)
+		}
+		log.Println(string(requestDump))
+
+		next.ServeHTTP(w, r)
+	})
+}
+
