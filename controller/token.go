@@ -7,6 +7,7 @@ import (
 
 	"github.com/obedtandadjaja/auth-go/models/credential"
 	"github.com/obedtandadjaja/auth-go/auth/jwt"
+	"github.com/obedtandadjaja/auth-go/auth/hash"
 )
 
 type TokenRequest struct {
@@ -15,7 +16,7 @@ type TokenRequest struct {
 }
 
 type TokenResponse struct {
-	jwt string
+	Jwt string `json:"jwt"`
 }
 
 func Token(sr *SharedResources, w http.ResponseWriter, r *http.Request) error {
@@ -50,7 +51,7 @@ func processRequest(sr *SharedResources, request *TokenRequest) (*TokenResponse,
 		return &response, HandlerError{401, errors.New("Invalid credentials")}
 	}
 
-	if value, _ := credential.Password.Value(); value != request.Password {
+	if hashValue := credential.Password.String; !hash.ValidatePasswordHash(request.Password, hashValue) {
 		return &response, HandlerError{401, errors.New("Invalid credentials")}
 	}
 
@@ -59,6 +60,6 @@ func processRequest(sr *SharedResources, request *TokenRequest) (*TokenResponse,
 		return &response, HandlerError{500, err}
 	}
 
-	response.jwt = tokenString
+	response.Jwt = tokenString
 	return &response, nil
 }
