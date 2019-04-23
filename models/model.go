@@ -1,4 +1,1 @@
-package model
-
-type Model interface {
-}
+package models

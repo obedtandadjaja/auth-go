@@ -3,21 +3,20 @@ package api
 import (
 	"net/http"
 	"encoding/json"
+
+	"github.com/obedtandadjaja/auth-go/models"
 	"github.com/obedtandadjaja/auth-go/auth/jwt"
+
+	"github.com/gorilla/mux"
 )
 
-var users = map[string]string {
-	"user1@gmail.com": "password1",
-	"user2@gmail.com": "password2",
-}
-
 type TokenRequest struct {
-	Email    string `json:"email"`
+	Identifier    string `json:"identifier"`
 	Password string `json:"password"`
 }
 
 type TokenResponse struct {
-	Jwt string
+	jwt string
 }
 
 func Token(w http.ResponseWriter, r *http.Request) {
@@ -29,14 +28,14 @@ func Token(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expectedPassword, ok := users[request.Email]
+	credential, err := models.credential.FindBy(app.DB, "identifier", request.Identifier)
 
-	if !ok || expectedPassword != request.Password {
+	if credential.Password != request.Password {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	tokenString, err := jwt.Generate(request.Email)
+	tokenString, err := jwt.Generate(request.Identifier)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -44,6 +43,6 @@ func Token(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	response := TokenResponse{ Jwt: tokenString }
+	response := TokenResponse{ jwt: tokenString }
 	json.NewEncoder(w).Encode(response)
 }
