@@ -6,8 +6,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/obedtandadjaja/auth-go/api"
-
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 	"github.com/golang-migrate/migrate"
@@ -35,7 +33,15 @@ func (app *App) Initialize(username, password, dbName string) {
 }
 
 func (app *App) initializeRoutes() {
-	app.Router.Handle("/token", logRequestMiddleware(http.HandlerFunc(api.Token)))
+	// app.Router.Handle("/token", logRequestMiddleware(http.HandlerFunc(api.Token)))
+
+	for _, route := range routes {
+		app.Router.
+			Methods(route.Method).
+			Path(route.Pattern).
+			Name(route.Name).
+			Handler(logRequestMiddleware(route.HandlerFunc))
+	}
 }
 
 func logRequestMiddleware(next http.Handler) http.Handler {
