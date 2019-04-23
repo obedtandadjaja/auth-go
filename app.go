@@ -18,24 +18,39 @@ import (
 
 type App struct {
 	Router *mux.Router
+	DB     *sql.DB
 }
 
 func (app *App) Initialize(host string, port string, user string, password string, dbName string) {
-	connectionString := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbName,
-	)
-
-	db, err := sql.Open("postgres", connectionString)
+	err := app.initializeDB(host, port, user, password, dbName)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
-	app.runMigration(db)
+	app.runMigration()
 
 	app.Router = mux.NewRouter()
-	sharedResources := &controller.SharedResources{ DB: db }
+	sharedResources := &controller.SharedResources{ DB: app.DB }
 	app.initializeRoutes(sharedResources)
+}
+
+func (app *App) initializeDB(host string, port string, user string, password string, dbName string) error {
+	connectionString := fmt.Sprintf(
+		"postgresql://%s:%s@%s:%s/%s?sslmode=disable",
+		user, password, host, port, dbName,
+	)
+
+	db, err := sql.Open("postgres", connectionString)
+	if err != nil {
+		return err
+	}
+
+	err = db.Ping()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (app *App) initializeRoutes(sr *controller.SharedResources) {
@@ -60,8 +75,8 @@ func logRequestMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (app *App) runMigration(db *sql.DB) {
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
+func (app *App) runMigration() {
+	driver, err := postgres.WithInstance(app.DB, &postgres.Config{})
 	if err != nil {
 		log.Fatal(err)
 		return

@@ -3,6 +3,7 @@ package credential
 import (
 	"time"
 	"database/sql"
+	"log"
 )
 
 type Credential struct {
@@ -36,7 +37,14 @@ func All(db *sql.DB) ([]*Credential, error) {
 }
 
 func FindBy(db *sql.DB, fieldName string, arg interface{}) (*Credential, error) {
-	return buildFromRow(db.QueryRow("select * from credentials where $1 = $2", fieldName, arg))
+	var user string
+	err := db.QueryRow("select current_database()").Scan(&user)
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println(user)
+
+	return buildFromRow(db.QueryRow("select * from credentials limit 1;"))
 }
 
 func buildFromRow(row *sql.Row) (*Credential, error) {
@@ -54,7 +62,12 @@ func buildFromRow(row *sql.Row) (*Credential, error) {
 	)
 
 	if err != nil {
-		return &credential, err
+		if err == sql.ErrNoRows {
+			log.Println("no rows")
+			return &credential, err
+		} else {
+			return &credential, err
+		}
 	}
 
 	return &credential, nil
