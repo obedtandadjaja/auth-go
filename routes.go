@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"github.com/obedtandadjaja/auth-go/controller"
+	"github.com/obedtandadjaja/auth-go/controller/credentials"
 )
 
 type Route struct {
@@ -20,5 +21,11 @@ var routes = Routes{
 		"POST",
 		"/token",
 		controller.Token,
+	},
+	Route{
+		"CreateCredential",
+		"POST",
+		"/credentials",
+		credentials.Create,
 	},
 }

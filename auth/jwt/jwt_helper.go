@@ -2,21 +2,20 @@ package jwt
 
 import (
 	"fmt"
+	"os"
 	"time"
 	"github.com/dgrijalva/jwt-go"
 )
 
-var jwtKey = []byte("secret-key")
-
 type Claim struct {
-	Email string `json:"email"`
+	Identifier string `json:"identifier"`
 	jwt.StandardClaims
 }
 
-func Generate(email string) (string, error) {
+func Generate(identifier string) (string, error) {
 	expirationTime := time.Now().Add(10 * time.Minute)
 	claims := &Claim{
-		Email: email,
+		Identifier: identifier,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -24,10 +23,14 @@ func Generate(email string) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	tokenString, err := token.SignedString(jwtKey)
+	tokenString, err := token.SignedString(secretKey())
 	if err != nil {
 		return "", fmt.Errorf("error exchanging jwt token")
 	}
 
 	return tokenString, nil
+}
+
+func secretKey() []byte {
+	return []byte(os.Getenv("SECRET_KEY"))
 }

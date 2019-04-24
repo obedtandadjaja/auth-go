@@ -53,6 +53,7 @@ func (app *App) initializeDB(host, port, user, password, dbName string) error {
 		return err
 	}
 
+	app.DB = db
 	return nil
 }
 
@@ -79,7 +80,7 @@ func (app *App) runMigration() {
 		return
 	}
 
-	migration.Steps(2)
+	migration.Up()
 }
 
 func (app *App) Run(addr string) {
