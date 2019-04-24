@@ -1,0 +1,1 @@
+ALTER TABLE credentials DROP CONSTRAINT credentials_identifier_subject_idx;

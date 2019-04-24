@@ -41,7 +41,7 @@ func All(db *sql.DB) ([]*Credential, error) {
 }
 
 func FindBy(db *sql.DB, fieldName string, arg interface{}) (*Credential, error) {
-	return buildFromRow(db.QueryRow("select * from credentials limit 1;"))
+	return buildFromRow(db.QueryRow("select * from credentials where $1 = $2", fieldName, arg))
 }
 
 func (credential *Credential) Create(db *sql.DB) error {

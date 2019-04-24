@@ -3,11 +3,13 @@ package credentials
 import (
 	"net/http"
 	"encoding/json"
-	// "errors"
+	"errors"
 	"database/sql"
 
 	"github.com/obedtandadjaja/auth-go/controller"
 	"github.com/obedtandadjaja/auth-go/models/credential"
+
+	"github.com/lib/pq"
 )
 
 type CreateRequest struct {
@@ -55,8 +57,17 @@ func processRequest(sr *controller.SharedResources, request *CreateRequest) (*Cr
 
 	err := cred.Create(sr.DB)
 	if err != nil {
-		// return &response, controller.HandlerError{400, errors.New("Failed to create credential")}
-		return &response, controller.HandlerError{400, err}
+		if err, ok := err.(*pq.Error); ok && err.Code == "23505" {
+			return &response, controller.HandlerError{
+				400,
+				errors.New("There is already an existing credential with this identifier"),
+			}
+		} else {
+			return &response, controller.HandlerError{
+				400,
+				errors.New("Failed to create credential"),
+			}
+		}
 	}
 
 	response.Id = cred.Id
