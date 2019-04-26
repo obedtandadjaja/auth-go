@@ -23,12 +23,12 @@ type CreateResponse struct {
 }
 
 func Create(sr *controller.SharedResources, w http.ResponseWriter, r *http.Request) error {
-	request, err := parseRequest(r)
+	request, err := parseCreateRequest(r)
 	if err != nil {
 		return controller.HandlerError{400, err}
 	}
 
-	response, err := processRequest(sr, request, r)
+	response, err := processCreateRequest(sr, request, r)
 	if err != nil {
 		return err
 	}
@@ -39,14 +39,14 @@ func Create(sr *controller.SharedResources, w http.ResponseWriter, r *http.Reque
 	return nil
 }
 
-func parseRequest(r *http.Request) (*CreateRequest, error) {
+func parseCreateRequest(r *http.Request) (*CreateRequest, error) {
 	var request CreateRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 
 	return &request, err
 }
 
-func processRequest(sr *controller.SharedResources, request *CreateRequest, r *http.Request) (*CreateResponse, error) {
+func processCreateRequest(sr *controller.SharedResources, request *CreateRequest, r *http.Request) (*CreateResponse, error) {
 	var response CreateResponse
 
 	cred := credential.Credential{

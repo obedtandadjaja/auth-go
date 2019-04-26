@@ -84,6 +84,12 @@ func (credential *Credential) IncrementFailedAttempt(db *sql.DB) error {
 	return err
 }
 
+func (credential *Credential) Delete(db *sql.DB) error {
+	_, err := db.Exec("delete from credentials where id = $1", credential.Id)
+
+	return err
+}
+
 func buildFromRow(row models.ScannableObject) (*Credential, error) {
 	var credential Credential
 
