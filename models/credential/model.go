@@ -3,6 +3,8 @@ package credential
 import (
 	"database/sql"
 	"time"
+	"strings"
+	"fmt"
 
 	"github.com/obedtandadjaja/auth-go/models"
 	"github.com/obedtandadjaja/auth-go/auth/hash"
@@ -11,14 +13,16 @@ import (
 )
 
 type Credential struct {
-	Id           int64
-	Identifier   string // can be email/username/phone
-	Password     sql.NullString
-	Subject      sql.NullString
-	LastSignedIn pq.NullTime
-	CreatedAt    pq.NullTime
-	UpdatedAt    pq.NullTime
-	IpAddress    sql.NullString
+	Id             int
+	Identifier     string // can be email/username/phone
+	Password       sql.NullString
+	Subject        sql.NullString
+	LastSignedIn   pq.NullTime
+	CreatedAt      pq.NullTime
+	UpdatedAt      pq.NullTime
+	IpAddress      sql.NullString
+	FailedAttempts int
+	LockedUntil    pq.NullTime
 }
 
 func All(db *sql.DB) ([]*Credential, error) {
@@ -62,6 +66,24 @@ func (credential *Credential) Create(db *sql.DB) error {
 	return err
 }
 
+func (credential *Credential) Update(db *sql.DB, fields map[string]interface{}) error {
+	var updateStatement []string
+	for k, v := range fields {
+		updateStatement = append(updateStatement, fmt.Sprintf("%v = %v", k, v))
+	}
+
+	_, err := db.Exec("update credentials set $1 where id = $2", strings.Join(updateStatement, ","), credential.Id)
+
+	return err
+}
+
+func (credential *Credential) IncrementFailedAttempt(db *sql.DB) error {
+	_, err := db.Exec(`update credentials set failed_attempts = failed_attempts + 1
+                       where id = $1 and failed_attempts = $2`, credential.Id, credential.FailedAttempts)
+
+	return err
+}
+
 func buildFromRow(row models.ScannableObject) (*Credential, error) {
 	var credential Credential
 
@@ -74,6 +96,8 @@ func buildFromRow(row models.ScannableObject) (*Credential, error) {
 		&credential.CreatedAt,
 		&credential.UpdatedAt,
 		&credential.IpAddress,
+		&credential.FailedAttempts,
+		&credential.LockedUntil,
 	)
 
 	if err != nil {

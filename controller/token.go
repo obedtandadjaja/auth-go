@@ -4,10 +4,16 @@ import (
 	"net/http"
 	"encoding/json"
 	"errors"
+	"time"
+	"fmt"
 
 	"github.com/obedtandadjaja/auth-go/models/credential"
 	"github.com/obedtandadjaja/auth-go/auth/jwt"
 	"github.com/obedtandadjaja/auth-go/auth/hash"
+)
+
+const (
+	MAX_FAILED_ATTEMPTS = 3
 )
 
 type TokenRequest struct {
@@ -51,9 +57,29 @@ func processRequest(sr *SharedResources, request *TokenRequest) (*TokenResponse,
 		return &response, HandlerError{401, errors.New("Invalid credentials")}
 	}
 
+	if credential.LockedUntil.Valid && credential.LockedUntil.Time.After(time.Now()) {
+		return &response, HandlerError{
+			401,
+			errors.New(fmt.Sprintf("Locked until %v", credential.LockedUntil.Time.Sub(time.Now()))),
+		}
+	}
+
 	if hashValue := credential.Password.String; !hash.ValidatePasswordHash(request.Password, hashValue) {
+		if credential.FailedAttempts == MAX_FAILED_ATTEMPTS {
+			credential.Update(sr.DB, map[string]interface{}{
+				"locked_until": time.Now().Add(time.Duration(credential.FailedAttempts * 10) * time.Minute),
+			})
+		}
+		credential.IncrementFailedAttempt(sr.DB)
+
 		return &response, HandlerError{401, errors.New("Invalid credentials")}
 	}
+
+	// don't care about this error if there is any
+	err = credential.Update(sr.DB, map[string]interface{}{
+		"failed_attempts": 0,
+		"locked_until": nil,
+	})
 
 	tokenString, err := jwt.Generate(request.Identifier)
 	if err != nil {

@@ -19,7 +19,7 @@ type CreateRequest struct {
 }
 
 type CreateResponse struct {
-	Id int64 `json:"id"`
+	Id int `json:"id"`
 }
 
 func Create(sr *controller.SharedResources, w http.ResponseWriter, r *http.Request) error {
