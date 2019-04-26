@@ -28,7 +28,7 @@ func Create(sr *controller.SharedResources, w http.ResponseWriter, r *http.Reque
 		return controller.HandlerError{400, err}
 	}
 
-	response, err := processRequest(sr, request)
+	response, err := processRequest(sr, request, r)
 	if err != nil {
 		return err
 	}
@@ -46,13 +46,14 @@ func parseRequest(r *http.Request) (*CreateRequest, error) {
 	return &request, err
 }
 
-func processRequest(sr *controller.SharedResources, request *CreateRequest) (*CreateResponse, error) {
+func processRequest(sr *controller.SharedResources, request *CreateRequest, r *http.Request) (*CreateResponse, error) {
 	var response CreateResponse
 
 	cred := credential.Credential{
 		Identifier: request.Identifier,
 		Password: sql.NullString{String: request.Password, Valid: true},
 		Subject: sql.NullString{String: request.Subject, Valid: true},
+		IpAddress: sql.NullString{String: r.RemoteAddr, Valid: true},
 	}
 
 	err := cred.Create(sr.DB)
