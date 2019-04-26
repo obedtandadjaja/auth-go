@@ -44,8 +44,13 @@ func All(db *sql.DB) ([]*Credential, error) {
 	return credentials, nil
 }
 
-func FindBy(db *sql.DB, fieldName string, arg interface{}) (*Credential, error) {
-	return buildFromRow(db.QueryRow("select * from credentials where $1 = $2", fieldName, arg))
+func FindBy(db *sql.DB, fields map[string]interface{}) (*Credential, error) {
+	var findStatement []string
+	for k, v := range fields {
+		findStatement = append(findStatement, fmt.Sprintf("%v = %v", k, v))
+	}
+
+	return buildFromRow(db.QueryRow("select * from credentials where $1 limit 1", strings.Join(findStatement, " and ")))
 }
 
 func (credential *Credential) Create(db *sql.DB) error {

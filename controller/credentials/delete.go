@@ -45,7 +45,11 @@ func parseDeleteRequest(r *http.Request) (*DeleteRequest, error) {
 func processDeleteRequest(sr *controller.SharedResources, request *DeleteRequest, r *http.Request) (*DeleteResponse, error) {
 	var response DeleteResponse
 
-	cred, err := credential.FindBy(sr.DB, "identifier", request.Identifier)
+	cred, err := credential.FindBy(sr.DB, map[string]interface{}{
+		"identifier": request.Identifier,
+		"subject":    request.Subject,
+	})
+
 	if err != nil {
 		return &response, controller.HandlerError{404, errors.New("Credential not found")}
 	}
