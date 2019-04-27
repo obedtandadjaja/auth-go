@@ -13,16 +13,17 @@ import (
 )
 
 type Credential struct {
-	Id             int
-	Identifier     string // can be email/username/phone
-	Password       sql.NullString
-	Subject        sql.NullString
-	LastSignedIn   pq.NullTime
-	CreatedAt      pq.NullTime
-	UpdatedAt      pq.NullTime
-	IpAddress      sql.NullString
-	FailedAttempts int
-	LockedUntil    pq.NullTime
+	Id                 int
+	Identifier         string // can be email/username/phone
+	Password           sql.NullString
+	Subject            sql.NullString
+	LastSignedIn       pq.NullTime
+	CreatedAt          pq.NullTime
+	UpdatedAt          pq.NullTime
+	IpAddress          sql.NullString
+	FailedAttempts     int
+	LockedUntil        pq.NullTime
+	PasswordResetToken sql.NullString
 }
 
 func All(db *sql.DB) ([]*Credential, error) {
@@ -95,6 +96,17 @@ func (credential *Credential) Delete(db *sql.DB) error {
 	return err
 }
 
+func (credential *Credential) UpdatePassword(db *sql.DB) error {
+	hashValue, err := hash.HashPassword(credential.Password.String)
+	if err != nil {
+		return nil
+	}
+
+	_, err = db.Exec("update credentials set password = $1, password_reset_token = null where id = $2", hashValue, credential.Id)
+
+	return err
+}
+
 func buildFromRow(row models.ScannableObject) (*Credential, error) {
 	var credential Credential
 
@@ -109,6 +121,7 @@ func buildFromRow(row models.ScannableObject) (*Credential, error) {
 		&credential.IpAddress,
 		&credential.FailedAttempts,
 		&credential.LockedUntil,
+		&credential.PasswordResetToken,
 	)
 
 	if err != nil {
