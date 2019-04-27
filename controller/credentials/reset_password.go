@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"encoding/json"
 	"errors"
-	"database/sql"
 
 	"github.com/obedtandadjaja/auth-go/controller"
 	"github.com/obedtandadjaja/auth-go/models/credential"
@@ -22,7 +21,7 @@ type ResetPasswordResponse struct {
 }
 
 func ResetPasssword(sr *controller.SharedResources, w http.ResponseWriter, r *http.Request) error {
-	request, err := parseResetPassword(r)
+	request, err := parseResetPasswordRequest(r)
 	if err != nil {
 		return controller.HandlerError{400, err}
 	}
@@ -38,7 +37,7 @@ func ResetPasssword(sr *controller.SharedResources, w http.ResponseWriter, r *ht
 	return nil
 }
 
-func parseResetPassword(r * http.Request) (*ResetPasswordRequest, error) {
+func parseResetPasswordRequest(r *http.Request) (*ResetPasswordRequest, error) {
 	var request ResetPasswordRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 
@@ -64,6 +63,6 @@ func processResetPasswordRequest(sr *controller.SharedResources, request *ResetP
 		return &response, controller.HandlerError{401, errors.New("Wrong password reset token")}
 	}
 
-	cred.Password = sql.NullString{String: request.NewPassword, Valid: true}
+	response.Id = cred.Id
 	return &response, nil
 }

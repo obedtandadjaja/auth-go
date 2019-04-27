@@ -107,6 +107,17 @@ func (credential *Credential) UpdatePassword(db *sql.DB) error {
 	return err
 }
 
+func (credential *Credential) SetPasswordResetToken(db *sql.DB) error {
+	hashValue, err := hash.HashPassword(fmt.Sprintf("%v", time.Now().Unix()))
+	if err != nil {
+		return nil
+	}
+
+	_, err = db.Exec("update credentials set password_reset_token = $1, where id = $2", hashValue, credential.Id)
+
+	return err
+}
+
 func buildFromRow(row models.ScannableObject) (*Credential, error) {
 	var credential Credential
 
