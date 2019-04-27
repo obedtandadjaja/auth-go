@@ -28,4 +28,22 @@ var routes = Routes{
 		"/credentials",
 		credentials.Create,
 	},
+	Route{
+		"DeleteCredential",
+		"POST",
+		"/credentials",
+		credentials.Delete,
+	},
+	Route{
+		"ResetPassword",
+		"POST",
+		"/credentials/reset_password",
+		credentials.ResetPassword,
+	},
+	Route{
+		"InitiateResetPassword",
+		"POST",
+		"/credentials/initiate_password_reset",
+		credentials.InitiatePasswordReset,
+	},
 }

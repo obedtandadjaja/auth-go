@@ -20,7 +20,7 @@ type ResetPasswordResponse struct {
 	Id int `json:"id"`
 }
 
-func ResetPasssword(sr *controller.SharedResources, w http.ResponseWriter, r *http.Request) error {
+func ResetPassword(sr *controller.SharedResources, w http.ResponseWriter, r *http.Request) error {
 	request, err := parseResetPasswordRequest(r)
 	if err != nil {
 		return controller.HandlerError{400, err}
