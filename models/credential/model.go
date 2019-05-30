@@ -63,7 +63,7 @@ func (credential *Credential) Create(db *sql.DB) error {
 	err = db.QueryRow(
 		`insert into credentials
          (id, identifier, password, subject, last_signed_in, created_at, updated_at, ip_address) values
-         (default, $1, $2, $3, $4, $5, $6, $7)
+         (nextval('credentials_id_seq'), $1, $2, $3, $4, $5, $6, $7)
          returning id`,
 		credential.Identifier, hashValue, credential.Subject, nil,
 		time.Now(), time.Now(), credential.IpAddress,
