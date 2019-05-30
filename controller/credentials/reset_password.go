@@ -23,7 +23,7 @@ type ResetPasswordResponse struct {
 func ResetPassword(sr *controller.SharedResources, w http.ResponseWriter, r *http.Request) error {
 	request, err := parseResetPasswordRequest(r)
 	if err != nil {
-		return controller.HandlerError{400, err}
+		return controller.HandlerError{400, err, err}
 	}
 
 	response, err := processResetPasswordRequest(sr, request, r)
@@ -52,15 +52,15 @@ func processResetPasswordRequest(sr *controller.SharedResources, request *ResetP
 		"subject": request.Subject,
 	})
 	if err != nil {
-		return &response, controller.HandlerError{404, errors.New("Credential not found")}
+		return &response, controller.HandlerError{404, errors.New("Credential not found"), err}
 	}
 
 	if !cred.PasswordResetToken.Valid {
-		return &response, controller.HandlerError{400, errors.New("Credential did not apply for password reset")}
+		return &response, controller.HandlerError{400, errors.New("Credential did not apply for password reset"), err}
 	}
 
 	if cred.PasswordResetToken.String != request.PasswordResetToken {
-		return &response, controller.HandlerError{401, errors.New("Wrong password reset token")}
+		return &response, controller.HandlerError{401, errors.New("Wrong password reset token"), err}
 	}
 
 	response.Id = cred.Id

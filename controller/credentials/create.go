@@ -25,7 +25,7 @@ type CreateResponse struct {
 func Create(sr *controller.SharedResources, w http.ResponseWriter, r *http.Request) error {
 	request, err := parseCreateRequest(r)
 	if err != nil {
-		return controller.HandlerError{400, err}
+		return controller.HandlerError{400, err, err}
 	}
 
 	response, err := processCreateRequest(sr, request, r)
@@ -62,11 +62,13 @@ func processCreateRequest(sr *controller.SharedResources, request *CreateRequest
 			return &response, controller.HandlerError{
 				400,
 				errors.New("There is already an existing credential with this identifier"),
+				err,
 			}
 		} else {
 			return &response, controller.HandlerError{
 				400,
 				errors.New("Failed to create credential"),
+				err,
 			}
 		}
 	}

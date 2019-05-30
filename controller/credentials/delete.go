@@ -21,7 +21,7 @@ type DeleteResponse struct {
 func Delete(sr *controller.SharedResources, w http.ResponseWriter, r * http.Request) error {
 	request, err := parseDeleteRequest(r)
 	if err != nil {
-		return controller.HandlerError{400, err}
+		return controller.HandlerError{400, err, err}
 	}
 
 	response, err := processDeleteRequest(sr, request,r)
@@ -51,12 +51,12 @@ func processDeleteRequest(sr *controller.SharedResources, request *DeleteRequest
 	})
 
 	if err != nil {
-		return &response, controller.HandlerError{404, errors.New("Credential not found")}
+		return &response, controller.HandlerError{404, errors.New("Credential not found"), err}
 	}
 
 	err = cred.Delete(sr.DB)
 	if err != nil {
-		return &response, controller.HandlerError{400, errors.New("Failed to delete credential")}
+		return &response, controller.HandlerError{400, errors.New("Failed to delete credential"), err}
 	}
 
 	response.Id = cred.Id

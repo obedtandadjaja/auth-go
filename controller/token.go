@@ -29,7 +29,7 @@ type TokenResponse struct {
 func Token(sr *SharedResources, w http.ResponseWriter, r *http.Request) error {
 	request, err := parseRequest(r)
 	if err != nil {
-		return HandlerError{400, err}
+		return HandlerError{400, err, nil}
 	}
 
 	response, err := processRequest(sr, request)
@@ -58,13 +58,14 @@ func processRequest(sr *SharedResources, request *TokenRequest) (*TokenResponse,
 		"subject":    request.Subject,
 	})
 	if err != nil {
-		return &response, HandlerError{401, errors.New("Invalid credentials")}
+		return &response, HandlerError{401, errors.New("Invalid credentials"), err}
 	}
 
 	if credential.LockedUntil.Valid && credential.LockedUntil.Time.After(time.Now()) {
 		return &response, HandlerError{
 			401,
 			errors.New(fmt.Sprintf("Locked until %v", credential.LockedUntil.Time.Sub(time.Now()))),
+			nil,
 		}
 	}
 
@@ -76,7 +77,7 @@ func processRequest(sr *SharedResources, request *TokenRequest) (*TokenResponse,
 		}
 		credential.IncrementFailedAttempt(sr.DB)
 
-		return &response, HandlerError{401, errors.New("Invalid credentials")}
+		return &response, HandlerError{401, errors.New("Invalid credentials"), nil}
 	}
 
 	// don't care about this error if there is any
@@ -87,7 +88,7 @@ func processRequest(sr *SharedResources, request *TokenRequest) (*TokenResponse,
 
 	tokenString, err := jwt.Generate(request.Identifier)
 	if err != nil {
-		return &response, HandlerError{500, err}
+		return &response, HandlerError{500, err, err}
 	}
 
 	response.Jwt = tokenString
