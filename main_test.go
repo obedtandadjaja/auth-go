@@ -3,7 +3,7 @@ package main_test
 import (
 	"os"
 	"testing"
-	"github.com/obedtandadjaja/auth-go/."
+	"github.com/obedtandadjaja/auth-go"
 )
 
 var app main.App
