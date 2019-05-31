@@ -5,8 +5,11 @@ import (
 	"testing"
 	"net/http"
 	"net/http/httptest"
+	"bytes"
+	"encoding/json"
 
 	"github.com/obedtandadjaja/auth-go"
+	"github.com/obedtandadjaja/auth-go/models/credential"
 )
 
 var app main.App
@@ -45,14 +48,49 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 	}
 }
 
+func TestCreateCredentialInvalidRequest(t *testing.T) {
+	payload := []byte(`{"identifier":0,"password":0, "subject":0}`)
+
+	req, _ := http.NewRequest("POST", "/credentials", bytes.NewBuffer(payload))
+	rr := executeRequest(req)
+
+	checkResponseCode(t, http.StatusBadRequest, rr.Code)
+}
+
 func TestCreateCredential(t *testing.T) {
 	clearCredentialsTable()
 
-	rr := httptest.NewRecorder()
+	payload := []byte(`{"identifier":"email","password":"password", "subject":"website"}`)
 
-	req, _ := http.NewRequest("POST", "/credentials", nil)
+	req, _ := http.NewRequest("POST", "/credentials", bytes.NewBuffer(payload))
+	rr := executeRequest(req)
 
-	app.Router.ServeHTTP(rr, req)
+	checkResponseCode(t, http.StatusCreated, rr.Code)
 
-	checkResponseCode(t, http.StatusBadRequest, rr.Code)
+	var responseBody map[string]interface{}
+	json.Unmarshal(rr.Body.Bytes(), &responseBody)
+
+	if id, ok := responseBody["id"]; ok {
+		credentials, _ := credential.All(app.DB)
+
+		if len(credentials) == 1 {
+			c := credentials[0]
+
+			if c.Id != int(id.(float64)) {
+				t.Errorf("Created credential id is wrong")
+			}
+
+			if c.Identifier != "email" {
+				t.Errorf("Created credential identifier is wrong")
+			}
+
+			if c.Subject.String != "website" {
+				t.Errorf("Created credential subject is wrong")
+			}
+		} else {
+			t.Errorf("Expected one credential to be created, found %d", len(credentials))
+		}
+	} else {
+		t.Errorf("Missing id in response")
+	}
 }

@@ -34,6 +34,7 @@ func Create(sr *controller.SharedResources, w http.ResponseWriter, r *http.Reque
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(response)
 
 	return nil

@@ -35,11 +35,11 @@ func All(db *sql.DB) ([]*Credential, error) {
 
 	credentials := []*Credential{}
 	for rows.Next() {
-		credential, err := buildFromRow(rows)
+		c, err := buildFromRow(rows)
 		if err != nil {
 			return nil, err
 		}
-		credentials = append(credentials, credential)
+		credentials = append(credentials, c)
 	}
 
 	return credentials, nil

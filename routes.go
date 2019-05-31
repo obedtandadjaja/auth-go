@@ -30,7 +30,7 @@ var routes = Routes{
 	},
 	Route{
 		"DeleteCredential",
-		"POST",
+		"DELETE",
 		"/credentials",
 		credentials.Delete,
 	},
