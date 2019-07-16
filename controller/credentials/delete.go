@@ -1,9 +1,12 @@
+// Consider removing delete credential, since there is no use case for it. If we do want accounts
+// to be deactivated, it should be a soft delete instead
+
 package credentials
 
 import (
-	"net/http"
 	"encoding/json"
 	"errors"
+	"net/http"
 
 	"github.com/obedtandadjaja/auth-go/controller"
 	"github.com/obedtandadjaja/auth-go/models/credential"
@@ -18,18 +21,19 @@ type DeleteResponse struct {
 	Id int `json:"id"`
 }
 
-func Delete(sr *controller.SharedResources, w http.ResponseWriter, r * http.Request) error {
+func Delete(sr *controller.SharedResources, w http.ResponseWriter, r *http.Request) error {
 	request, err := parseDeleteRequest(r)
 	if err != nil {
 		return controller.HandlerError{400, err, err}
 	}
 
-	response, err := processDeleteRequest(sr, request,r)
+	response, err := processDeleteRequest(sr, request, r)
 	if err != nil {
-		return nil
+		return controller.HandlerError{400, err, err}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNoContent)
 	json.NewEncoder(w).Encode(response)
 
 	return nil

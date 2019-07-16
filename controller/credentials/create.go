@@ -1,10 +1,10 @@
 package credentials
 
 import (
-	"net/http"
+	"database/sql"
 	"encoding/json"
 	"errors"
-	"database/sql"
+	"net/http"
 
 	"github.com/obedtandadjaja/auth-go/controller"
 	"github.com/obedtandadjaja/auth-go/models/credential"
@@ -52,9 +52,9 @@ func processCreateRequest(sr *controller.SharedResources, request *CreateRequest
 
 	cred := credential.Credential{
 		Identifier: request.Identifier,
-		Password: sql.NullString{String: request.Password, Valid: true},
-		Subject: sql.NullString{String: request.Subject, Valid: true},
-		IpAddress: sql.NullString{String: r.RemoteAddr, Valid: true},
+		Password:   sql.NullString{String: request.Password, Valid: true},
+		Subject:    sql.NullString{String: request.Subject, Valid: true},
+		IpAddress:  sql.NullString{String: r.RemoteAddr, Valid: true},
 	}
 
 	err := cred.Create(sr.DB)

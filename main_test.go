@@ -1,12 +1,13 @@
 package main_test
 
 import (
-	"os"
-	"testing"
-	"net/http"
-	"net/http/httptest"
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
 
 	"github.com/obedtandadjaja/auth-go"
 	"github.com/obedtandadjaja/auth-go/models/credential"
@@ -60,10 +61,7 @@ func TestCreateCredentialInvalidRequest(t *testing.T) {
 func TestCreateCredential(t *testing.T) {
 	clearCredentialsTable()
 
-	payload := []byte(`{"identifier":"email","password":"password", "subject":"website"}`)
-
-	req, _ := http.NewRequest("POST", "/credentials", bytes.NewBuffer(payload))
-	rr := executeRequest(req)
+	rr := createCredential("email", "password", "website")
 
 	checkResponseCode(t, http.StatusCreated, rr.Code)
 
@@ -93,4 +91,40 @@ func TestCreateCredential(t *testing.T) {
 	} else {
 		t.Errorf("Missing id in response")
 	}
+}
+
+func createCredential(identifier, password, subject string) *httptest.ResponseRecorder {
+	jsonString := fmt.Sprintf(`{"identifier":"%s","password":"%s","subject":"%s"}`, identifier, password, subject)
+
+	payload := []byte(jsonString)
+
+	req, _ := http.NewRequest("POST", "/credentials", bytes.NewBuffer(payload))
+	rr := executeRequest(req)
+
+	return rr
+}
+
+// Consider removing delete credential, since there is no use case for it. If we do want accounts
+// to be deactivated, it should be a soft delete instead
+func TestDeleteCredential(t *testing.T) {
+	clearCredentialsTable()
+
+	createCredential("email", "password", "website")
+
+	rr := deleteCredential("email", "website")
+
+	fmt.Println(rr)
+
+	checkResponseCode(t, http.StatusNoContent, rr.Code)
+}
+
+func deleteCredential(identifier, subject string) *httptest.ResponseRecorder {
+	jsonString := fmt.Sprintf(`{"identifier":"%s","subject":"%s"}`, identifier, subject)
+
+	payload := []byte(jsonString)
+
+	req, _ := http.NewRequest("DELETE", "/credentials", bytes.NewBuffer(payload))
+	rr := executeRequest(req)
+
+	return rr
 }
