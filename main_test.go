@@ -113,8 +113,6 @@ func TestDeleteCredential(t *testing.T) {
 
 	rr := deleteCredential("email", "website")
 
-	fmt.Println(rr)
-
 	checkResponseCode(t, http.StatusNoContent, rr.Code)
 }
 

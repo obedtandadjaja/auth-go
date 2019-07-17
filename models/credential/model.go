@@ -2,12 +2,12 @@ package credential
 
 import (
 	"database/sql"
-	"time"
-	"strings"
 	"fmt"
+	"strings"
+	"time"
 
-	"github.com/obedtandadjaja/auth-go/models"
 	"github.com/obedtandadjaja/auth-go/auth/hash"
+	"github.com/obedtandadjaja/auth-go/models"
 
 	"github.com/lib/pq"
 )
@@ -47,11 +47,18 @@ func All(db *sql.DB) ([]*Credential, error) {
 
 func FindBy(db *sql.DB, fields map[string]interface{}) (*Credential, error) {
 	var findStatement []string
+	var findValues []interface{}
+
+	index := 0
 	for k, v := range fields {
-		findStatement = append(findStatement, fmt.Sprintf("%v = %v", k, v))
+		index++
+		findStatement = append(findStatement, fmt.Sprintf("%v = $%v", k, index))
+		findValues = append(findValues, v)
 	}
 
-	return buildFromRow(db.QueryRow("select * from credentials where $1 limit 1", strings.Join(findStatement, " and ")))
+	sql := "select * from credentials where " + strings.Join(findStatement, " and ")
+
+	return buildFromRow(db.QueryRow(sql, findValues...))
 }
 
 func (credential *Credential) Create(db *sql.DB) error {
@@ -73,12 +80,19 @@ func (credential *Credential) Create(db *sql.DB) error {
 }
 
 func (credential *Credential) Update(db *sql.DB, fields map[string]interface{}) error {
-	var updateStatement []string
+	var findStatement []string
+	var findValues []interface{}
+
+	index := 0
 	for k, v := range fields {
-		updateStatement = append(updateStatement, fmt.Sprintf("%v = %v", k, v))
+		index++
+		findStatement = append(findStatement, fmt.Sprintf("%v = $%v", k, index))
+		findValues = append(findValues, v)
 	}
 
-	_, err := db.Exec("update credentials set $1 where id = $2", strings.Join(updateStatement, ","), credential.Id)
+	sql := fmt.Sprintf("update credentials set %s where id = %d", strings.Join(findStatement, " and "), credential.Id)
+
+	_, err := db.Exec(sql, findValues...)
 
 	return err
 }
@@ -136,6 +150,7 @@ func buildFromRow(row models.ScannableObject) (*Credential, error) {
 	)
 
 	if err != nil {
+		fmt.Println(err)
 		return &credential, err
 	}
 
