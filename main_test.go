@@ -1,4 +1,4 @@
-package auth_go_test
+package main_test
 
 import (
 	"bytes"
@@ -9,14 +9,14 @@ import (
 	"os"
 	"testing"
 
-	auth_go "github.com/obedtandadjaja/auth-go"
+	main "github.com/obedtandadjaja/auth-go"
 	"github.com/obedtandadjaja/auth-go/models/credential"
 )
 
-var app auth_go.App
+var app main.App
 
 func TestMain(m *testing.M) {
-	app = auth_go.App{}
+	app = main.App{}
 	app.Initialize(
 		os.Getenv("ENV"),
 		os.Getenv("DB_HOST"),

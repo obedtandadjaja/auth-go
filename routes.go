@@ -1,4 +1,4 @@
-package auth_go
+package main
 
 import (
 	"net/http"
