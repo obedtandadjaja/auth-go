@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"net/http"
 	"database/sql"
 	"log"
+	"net/http"
 )
 
 type HttpError interface {

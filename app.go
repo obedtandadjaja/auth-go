@@ -1,4 +1,4 @@
-package main
+package auth_go
 
 import (
 	"database/sql"
@@ -9,11 +9,11 @@ import (
 
 	"github.com/obedtandadjaja/auth-go/controller"
 
-	"github.com/gorilla/mux"
-	_ "github.com/lib/pq"
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database/postgres"
 	_ "github.com/golang-migrate/migrate/source/file"
+	"github.com/gorilla/mux"
+	_ "github.com/lib/pq"
 )
 
 type App struct {
@@ -33,7 +33,7 @@ func (app *App) Initialize(env, host, port, user, password, dbName string) {
 	app.runMigration()
 
 	app.Router = mux.NewRouter()
-	sharedResources := &controller.SharedResources{ DB: app.DB, Env: env }
+	sharedResources := &controller.SharedResources{DB: app.DB, Env: env}
 	app.initializeRoutes(sharedResources)
 }
 
@@ -99,4 +99,3 @@ func logRequestMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
-

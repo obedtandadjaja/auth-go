@@ -1,4 +1,4 @@
-package main
+package auth_go
 
 import "os"
 

@@ -1,9 +1,9 @@
 package credentials
 
 import (
-	"net/http"
 	"encoding/json"
 	"errors"
+	"net/http"
 
 	"github.com/obedtandadjaja/auth-go/controller"
 	"github.com/obedtandadjaja/auth-go/models/credential"
@@ -49,7 +49,7 @@ func processResetPasswordRequest(sr *controller.SharedResources, request *ResetP
 
 	cred, err := credential.FindBy(sr.DB, map[string]interface{}{
 		"identifier": request.Identifier,
-		"subject": request.Subject,
+		"subject":    request.Subject,
 	})
 	if err != nil {
 		return &response, controller.HandlerError{404, errors.New("Credential not found"), err}

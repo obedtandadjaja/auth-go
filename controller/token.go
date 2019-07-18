@@ -1,15 +1,15 @@
 package controller
 
 import (
-	"net/http"
 	"encoding/json"
 	"errors"
-	"time"
 	"fmt"
+	"net/http"
+	"time"
 
-	"github.com/obedtandadjaja/auth-go/models/credential"
-	"github.com/obedtandadjaja/auth-go/auth/jwt"
 	"github.com/obedtandadjaja/auth-go/auth/hash"
+	"github.com/obedtandadjaja/auth-go/auth/jwt"
+	"github.com/obedtandadjaja/auth-go/models/credential"
 )
 
 const (
@@ -72,7 +72,7 @@ func processRequest(sr *SharedResources, request *TokenRequest) (*TokenResponse,
 	if hashValue := credential.Password.String; !hash.ValidatePasswordHash(request.Password, hashValue) {
 		if credential.FailedAttempts == MAX_FAILED_ATTEMPTS {
 			credential.Update(sr.DB, map[string]interface{}{
-				"locked_until": time.Now().Add(time.Duration(credential.FailedAttempts * 10) * time.Minute),
+				"locked_until": time.Now().Add(time.Duration(credential.FailedAttempts*10) * time.Minute),
 			})
 		}
 		credential.IncrementFailedAttempt(sr.DB)
@@ -83,7 +83,7 @@ func processRequest(sr *SharedResources, request *TokenRequest) (*TokenResponse,
 	// don't care about this error if there is any
 	err = credential.Update(sr.DB, map[string]interface{}{
 		"failed_attempts": 0,
-		"locked_until": nil,
+		"locked_until":    nil,
 	})
 
 	tokenString, err := jwt.Generate(request.Identifier)

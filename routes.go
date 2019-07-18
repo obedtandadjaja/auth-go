@@ -1,7 +1,8 @@
-package main
+package auth_go
 
 import (
 	"net/http"
+
 	"github.com/obedtandadjaja/auth-go/controller"
 	"github.com/obedtandadjaja/auth-go/controller/credentials"
 )
