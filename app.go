@@ -39,7 +39,7 @@ func (app *App) Initialize(env, host, port, user, password, dbName string) {
 
 func (app *App) initializeDB(host, port, user, password, dbName string) error {
 	connectionString := fmt.Sprintf(
-		"postgresql://%s:%s@%s:%s/%s?sslmode=disable",
+		"postgresql://%v:%v@%v:%v/%v?sslmode=disable",
 		user, password, host, port, dbName,
 	)
 
