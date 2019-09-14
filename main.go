@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 )
 
@@ -14,5 +15,6 @@ func main() {
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_NAME"),
 	)
-	app.Run(":8080")
+	log.Println("App running on port " + os.Getenv("APP_PORT"))
+	app.Run(os.Getenv("APP_HOST") + ":" + os.Getenv("APP_PORT"))
 }

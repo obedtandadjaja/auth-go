@@ -8,6 +8,8 @@ DB_NAME          ?= "auth"
 TEST_DB_USER     ?= "obedtandadjaja"
 TEST_DB_PASSWORD ?= ""
 TEST_DB_NAME     ?= "auth_test"
+APP_HOST         ?= "localhost"
+APP_PORT         ?= "8080"
 
 run:
 	export SECRET_KEY=$(SECRET_KEY) \
@@ -20,4 +22,8 @@ run:
          TEST_DB_USER=$(TEST_DB_USER) \
          TEST_DB_PASSWORD=$(TEST_DB_PASSWORD) \
          TEST_DB_NAME=$(TEST_DB_NAME) \
-  go build && ./auth-go
+         APP_HOST=$(APP_HOST) \
+         APP_PORT=$(APP_PORT); \
+  go clean; \
+  go build; \
+  ./auth-go
