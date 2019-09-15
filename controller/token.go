@@ -27,12 +27,12 @@ type TokenResponse struct {
 }
 
 func Token(sr *SharedResources, w http.ResponseWriter, r *http.Request) error {
-	request, err := parseRequest(r)
+	request, err := parseTokenRequest(r)
 	if err != nil {
 		return HandlerError{400, err, nil}
 	}
 
-	response, err := processRequest(sr, request)
+	response, err := processTokenRequest(sr, request)
 	if err != nil {
 		return err
 	}
@@ -43,14 +43,14 @@ func Token(sr *SharedResources, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func parseRequest(r *http.Request) (*TokenRequest, error) {
+func parseTokenRequest(r *http.Request) (*TokenRequest, error) {
 	var request TokenRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 
 	return &request, err
 }
 
-func processRequest(sr *SharedResources, request *TokenRequest) (*TokenResponse, error) {
+func processTokenRequest(sr *SharedResources, request *TokenRequest) (*TokenResponse, error) {
 	var response TokenResponse
 
 	credential, err := credential.FindBy(sr.DB, map[string]interface{}{

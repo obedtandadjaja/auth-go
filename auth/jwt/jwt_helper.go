@@ -32,6 +32,23 @@ func Generate(identifier string) (string, error) {
 	return tokenString, nil
 }
 
+func Verify(tokenString string) error {
+	token, err := jwt.Parse(
+		tokenString,
+		func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("There was an error")
+			}
+			return secretKey(), nil
+		})
+
+	if token.Claims.ExpiresAt < time.Now().Unix() {
+		return fmt.Errorf("token has expired")
+	}
+
+	return err
+}
+
 func secretKey() []byte {
 	return []byte(os.Getenv("SECRET_KEY"))
 }
