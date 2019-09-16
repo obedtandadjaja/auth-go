@@ -12,7 +12,9 @@ type VerifyRequest struct {
 }
 
 type VerifyResponse struct {
-	Verified bool `json:"verified"`
+	CredentialId int    `json:"credential_id"`
+	Identifier   string `json:"identifier"`
+	Verified     bool   `json:"verified"`
 }
 
 func Verify(sr *SharedResources, w http.ResponseWriter, r *http.Request) error {
@@ -42,8 +44,14 @@ func parseVerifyRequest(r *http.Request) (*VerifyRequest, error) {
 func processVerifyRequest(sr *SharedResources, request *VerifyRequest) (*VerifyResponse, error) {
 	var response VerifyResponse
 
-	err := jwt.Verify(request.Jwt)
+	credentialId, identifier, err := jwt.Verify(request.Jwt)
 
-	response.Verified = err != nil
+	if err != nil {
+		response.Verified = false
+	} else {
+		response.CredentialId = credentialId
+		response.Identifier = identifier
+		response.Verified = true
+	}
 	return &response, nil
 }

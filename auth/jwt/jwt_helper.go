@@ -34,7 +34,7 @@ func Generate(credentialId int, identifier string) (string, error) {
 	return tokenString, nil
 }
 
-func Verify(tokenString string) error {
+func Verify(tokenString string) (int, string, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenString,
 		&Claim{},
@@ -45,12 +45,18 @@ func Verify(tokenString string) error {
 			return secretKey(), nil
 		})
 
-	// this is already done via .Valid(); retaining this here for future examples
-	if token.Claims.(*Claim).ExpiresAt < time.Now().Unix() {
-		return fmt.Errorf("token has expired")
+	if err != nil {
+		return -1, "", err
 	}
 
-	return err
+	// this is already done via .Valid(); retaining this here for future examples
+	if token.Claims.(*Claim).ExpiresAt < time.Now().Unix() {
+		return -1, "", fmt.Errorf("token has expired")
+	}
+
+	return token.Claims.(*Claim).CredentialId,
+		token.Claims.(*Claim).Identifier,
+		nil
 }
 
 func secretKey() []byte {
