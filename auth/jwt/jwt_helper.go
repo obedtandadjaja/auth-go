@@ -9,14 +9,16 @@ import (
 )
 
 type Claim struct {
-	Identifier string `json:"identifier"`
+	CredentialId int    `json:"credential_id"`
+	Identifier   string `json:"identifier"`
 	jwt.StandardClaims
 }
 
-func Generate(identifier string) (string, error) {
+func Generate(credentialId int, identifier string) (string, error) {
 	expirationTime := time.Now().Add(10 * time.Minute)
 	claims := &Claim{
-		Identifier: identifier,
+		CredentialId: credentialId,
+		Identifier:   identifier,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -33,8 +35,9 @@ func Generate(identifier string) (string, error) {
 }
 
 func Verify(tokenString string) error {
-	token, err := jwt.Parse(
+	token, err := jwt.ParseWithClaims(
 		tokenString,
+		&Claim{},
 		func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("There was an error")
@@ -42,7 +45,8 @@ func Verify(tokenString string) error {
 			return secretKey(), nil
 		})
 
-	if token.Claims.ExpiresAt < time.Now().Unix() {
+	// this is already done via .Valid(); retaining this here for future examples
+	if token.Claims.(*Claim).ExpiresAt < time.Now().Unix() {
 		return fmt.Errorf("token has expired")
 	}
 

@@ -86,7 +86,7 @@ func processTokenRequest(sr *SharedResources, request *TokenRequest) (*TokenResp
 		"locked_until":    nil,
 	})
 
-	tokenString, err := jwt.Generate(request.Identifier)
+	tokenString, err := jwt.Generate(credential.Id, request.Identifier)
 	if err != nil {
 		return &response, HandlerError{500, err, err}
 	}
