@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/obedtandadjaja/auth-go/auth/jwt"
@@ -47,7 +48,7 @@ func processVerifyRequest(sr *SharedResources, request *VerifyRequest) (*VerifyR
 	credentialId, identifier, err := jwt.Verify(request.Jwt)
 
 	if err != nil {
-		response.Verified = false
+		return &response, HandlerError{400, errors.New("Invalid JWT token"), nil}
 	} else {
 		response.CredentialId = credentialId
 		response.Identifier = identifier
