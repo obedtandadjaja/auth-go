@@ -9,16 +9,14 @@ import (
 )
 
 type Claim struct {
-	CredentialId int    `json:"credential_id"`
-	Identifier   string `json:"identifier"`
+	CredentialId string `json:"credential_id"`
 	jwt.StandardClaims
 }
 
-func Generate(credentialId int, identifier string) (string, error) {
+func Generate(credentialId string) (string, error) {
 	expirationTime := time.Now().Add(10 * time.Minute)
 	claims := &Claim{
 		CredentialId: credentialId,
-		Identifier:   identifier,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -34,7 +32,7 @@ func Generate(credentialId int, identifier string) (string, error) {
 	return tokenString, nil
 }
 
-func Verify(tokenString string) (int, string, error) {
+func Verify(tokenString string) (string, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenString,
 		&Claim{},
@@ -46,17 +44,15 @@ func Verify(tokenString string) (int, string, error) {
 		})
 
 	if err != nil {
-		return -1, "", err
+		return "", err
 	}
 
 	// this is already done via .Valid(); retaining this here for future examples
 	if token.Claims.(*Claim).ExpiresAt < time.Now().Unix() {
-		return -1, "", fmt.Errorf("token has expired")
+		return "", fmt.Errorf("token has expired")
 	}
 
-	return token.Claims.(*Claim).CredentialId,
-		token.Claims.(*Claim).Identifier,
-		nil
+	return token.Claims.(*Claim).CredentialId, nil
 }
 
 func secretKey() []byte {

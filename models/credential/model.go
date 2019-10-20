@@ -13,10 +13,8 @@ import (
 )
 
 type Credential struct {
-	Id                 int
-	Identifier         string // can be email/username/phone
+	Id                 string
 	Password           sql.NullString
-	Subject            sql.NullString
 	LastSignedIn       pq.NullTime
 	CreatedAt          pq.NullTime
 	UpdatedAt          pq.NullTime
@@ -69,11 +67,9 @@ func (credential *Credential) Create(db *sql.DB) error {
 
 	err = db.QueryRow(
 		`insert into credentials
-         (id, identifier, password, subject, last_signed_in, created_at, updated_at, ip_address) values
-         (nextval('credentials_id_seq'), $1, $2, $3, $4, $5, $6, $7)
-         returning id`,
-		credential.Identifier, hashValue, credential.Subject, nil,
-		time.Now(), time.Now(), credential.IpAddress,
+		 (password, last_signed_in, created_at, updated_at, ip_address) values
+		 ($1, $2, $3, $4, $5) returning id`,
+		hashValue, nil, time.Now(), time.Now(), credential.IpAddress,
 	).Scan(&credential.Id)
 
 	return err
@@ -90,7 +86,7 @@ func (credential *Credential) Update(db *sql.DB, fields map[string]interface{}) 
 		findValues = append(findValues, v)
 	}
 
-	sql := fmt.Sprintf("update credentials set %s where id = %d", strings.Join(findStatement, " and "), credential.Id)
+	sql := fmt.Sprintf("update credentials set %s where id = %d", strings.Join(findStatement, ", "), credential.Id)
 
 	_, err := db.Exec(sql, findValues...)
 
@@ -137,9 +133,7 @@ func buildFromRow(row models.ScannableObject) (*Credential, error) {
 
 	err := row.Scan(
 		&credential.Id,
-		&credential.Identifier,
 		&credential.Password,
-		&credential.Subject,
 		&credential.LastSignedIn,
 		&credential.CreatedAt,
 		&credential.UpdatedAt,

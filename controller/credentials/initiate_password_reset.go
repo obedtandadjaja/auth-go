@@ -10,8 +10,7 @@ import (
 )
 
 type InitiatePasswordResetRequest struct {
-	Identifier string `json:"identifier"`
-	Subject    string `json:"subject"`
+	CredentialId string `json:"credential_id"`
 }
 
 type InitiatePasswordResetResponse struct {
@@ -46,8 +45,7 @@ func processInitiatePasswordResetRequest(sr *controller.SharedResources, request
 	var response InitiatePasswordResetResponse
 
 	cred, err := credential.FindBy(sr.DB, map[string]interface{}{
-		"identifier": request.Identifier,
-		"subject":    request.Subject,
+		"id": request.CredentialId,
 	})
 	if err != nil {
 		return &response, controller.HandlerError{404, errors.New("Credential not found"), err}

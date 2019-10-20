@@ -8,18 +8,14 @@ import (
 
 	"github.com/obedtandadjaja/auth-go/controller"
 	"github.com/obedtandadjaja/auth-go/models/credential"
-
-	"github.com/lib/pq"
 )
 
 type CreateRequest struct {
-	Identifier string `json:"identifier"`
-	Password   string `json:"password"`
-	Subject    string `json:"subject"`
+	Password string `json:"password"`
 }
 
 type CreateResponse struct {
-	Id int `json:"id"`
+	Id string `json:"id"`
 }
 
 func Create(sr *controller.SharedResources, w http.ResponseWriter, r *http.Request) error {
@@ -51,26 +47,16 @@ func processCreateRequest(sr *controller.SharedResources, request *CreateRequest
 	var response CreateResponse
 
 	cred := credential.Credential{
-		Identifier: request.Identifier,
-		Password:   sql.NullString{String: request.Password, Valid: true},
-		Subject:    sql.NullString{String: request.Subject, Valid: true},
-		IpAddress:  sql.NullString{String: r.RemoteAddr, Valid: true},
+		Password:  sql.NullString{String: request.Password, Valid: true},
+		IpAddress: sql.NullString{String: r.RemoteAddr, Valid: true},
 	}
 
 	err := cred.Create(sr.DB)
 	if err != nil {
-		if err, ok := err.(*pq.Error); ok && err.Code == "23505" {
-			return &response, controller.HandlerError{
-				400,
-				errors.New("There is already an existing credential with this identifier"),
-				err,
-			}
-		} else {
-			return &response, controller.HandlerError{
-				400,
-				errors.New("Failed to create credential"),
-				err,
-			}
+		return &response, controller.HandlerError{
+			400,
+			errors.New("Failed to create credential"),
+			err,
 		}
 	}
 

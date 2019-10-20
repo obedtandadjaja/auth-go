@@ -33,7 +33,6 @@ func TestMain(m *testing.M) {
 
 func clearCredentialsTable() {
 	app.DB.Exec("delete from credentials")
-	app.DB.Exec("alter sequence credentials_id_seq restart with 1")
 }
 
 func executeRequest(req *http.Request) *httptest.ResponseRecorder {
@@ -50,7 +49,7 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 }
 
 func TestCreateCredentialInvalidRequest(t *testing.T) {
-	payload := []byte(`{"identifier":0,"password":0, "subject":0}`)
+	payload := []byte(`{"credential_id":0,"password":0}`)
 
 	req, _ := http.NewRequest("POST", "/credentials", bytes.NewBuffer(payload))
 	rr := executeRequest(req)
@@ -61,7 +60,7 @@ func TestCreateCredentialInvalidRequest(t *testing.T) {
 func TestCreateCredential(t *testing.T) {
 	clearCredentialsTable()
 
-	rr := createCredential("email", "password", "website")
+	rr := createCredential("password")
 
 	checkResponseCode(t, http.StatusCreated, rr.Code)
 
@@ -74,16 +73,8 @@ func TestCreateCredential(t *testing.T) {
 		if len(credentials) == 1 {
 			c := credentials[0]
 
-			if c.Id != int(id.(float64)) {
+			if c.Id != id {
 				t.Errorf("Created credential id is wrong")
-			}
-
-			if c.Identifier != "email" {
-				t.Errorf("Created credential identifier is wrong")
-			}
-
-			if c.Subject.String != "website" {
-				t.Errorf("Created credential subject is wrong")
 			}
 		} else {
 			t.Errorf("Expected one credential to be created, found %d", len(credentials))
@@ -93,8 +84,8 @@ func TestCreateCredential(t *testing.T) {
 	}
 }
 
-func createCredential(identifier, password, subject string) *httptest.ResponseRecorder {
-	jsonString := fmt.Sprintf(`{"identifier":"%s","password":"%s","subject":"%s"}`, identifier, password, subject)
+func createCredential(password string) *httptest.ResponseRecorder {
+	jsonString := fmt.Sprintf(`{"password":"%s"}`, password)
 
 	payload := []byte(jsonString)
 
@@ -109,15 +100,18 @@ func createCredential(identifier, password, subject string) *httptest.ResponseRe
 func TestDeleteCredential(t *testing.T) {
 	clearCredentialsTable()
 
-	createCredential("email", "password", "website")
+	rr := createCredential("password")
 
-	rr := deleteCredential("email", "website")
+	var responseBody map[string]string
+	json.Unmarshal(rr.Body.Bytes(), &responseBody)
+
+	rr = deleteCredential(responseBody["id"])
 
 	checkResponseCode(t, http.StatusNoContent, rr.Code)
 }
 
-func deleteCredential(identifier, subject string) *httptest.ResponseRecorder {
-	jsonString := fmt.Sprintf(`{"identifier":"%s","subject":"%s"}`, identifier, subject)
+func deleteCredential(credentialId string) *httptest.ResponseRecorder {
+	jsonString := fmt.Sprintf(`{"credential_id":"%s"}`, credentialId)
 
 	payload := []byte(jsonString)
 

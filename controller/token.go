@@ -17,9 +17,8 @@ const (
 )
 
 type TokenRequest struct {
-	Identifier string `json:"identifier"`
-	Password   string `json:"password"`
-	Subject    string `json:"subject"`
+	CredentialId string `json:"credential_id"`
+	Password     string `json:"password"`
 }
 
 type TokenResponse struct {
@@ -54,8 +53,7 @@ func processTokenRequest(sr *SharedResources, request *TokenRequest) (*TokenResp
 	var response TokenResponse
 
 	credential, err := credential.FindBy(sr.DB, map[string]interface{}{
-		"identifier": request.Identifier,
-		"subject":    request.Subject,
+		"id": request.CredentialId,
 	})
 	if err != nil {
 		return &response, HandlerError{401, errors.New("Invalid credentials"), err}
@@ -86,7 +84,7 @@ func processTokenRequest(sr *SharedResources, request *TokenRequest) (*TokenResp
 		"locked_until":    nil,
 	})
 
-	tokenString, err := jwt.Generate(credential.Id, request.Identifier)
+	tokenString, err := jwt.Generate(credential.Id)
 	if err != nil {
 		return &response, HandlerError{500, err, err}
 	}

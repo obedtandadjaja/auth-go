@@ -19,6 +19,17 @@ run:
 	       DB_USER=$(DB_USER) \
 	       DB_PASSWORD=$(DB_PASSWORD) \
 	       DB_NAME=$(DB_NAME) \
+         APP_HOST=$(APP_HOST) \
+         APP_PORT=$(APP_PORT); \
+  go clean; \
+  go build; \
+  ./auth-go
+
+test:
+	export SECRET_KEY=$(SECRET_KEY) \
+         ENV=$(ENV) \
+	       DB_HOST=$(DB_HOST) \
+	       DB_PORT=$(DB_PORT) \
          TEST_DB_USER=$(TEST_DB_USER) \
          TEST_DB_PASSWORD=$(TEST_DB_PASSWORD) \
          TEST_DB_NAME=$(TEST_DB_NAME) \
@@ -26,4 +37,4 @@ run:
          APP_PORT=$(APP_PORT); \
   go clean; \
   go build; \
-  ./auth-go
+  go test
