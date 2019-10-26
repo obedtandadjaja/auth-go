@@ -13,7 +13,8 @@ import (
 )
 
 type Credential struct {
-	Id                 string
+	Id                 int
+	Uuid               string
 	Password           sql.NullString
 	LastSignedIn       pq.NullTime
 	CreatedAt          pq.NullTime

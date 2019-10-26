@@ -7,8 +7,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/obedtandadjaja/auth-go/auth/hash"
 	"github.com/obedtandadjaja/auth-go/models/credential"
+	"github.com/obedtandadjaja/auth-go/models/refresh_token"
 )
 
 type RefreshTokenRequest struct {
@@ -17,7 +19,8 @@ type RefreshTokenRequest struct {
 }
 
 type RefreshTokenResponse struct {
-	RefreshToken string `json:"refresh_token"`
+	RefreshToken string      `json:"refresh_token"`
+	ExpiresAt    pq.NullTime `json:"expires_at"`
 }
 
 func RefreshToken(sr *SharedResources, w http.ResponseWriter, r *http.Request) error {
@@ -80,5 +83,19 @@ func processRefreshTokenRequest(sr *SharedResources, request *RefreshTokenReques
 		"locked_until":    nil,
 	})
 
+	refreshToken := refresh_token.RefreshToken{
+		Id:           0,
+		Token:        "",
+		CredentialId: credential.Id,
+		ExpiresAt:    pq.NullTime{Time: time.Now().Add(time.Duration(24 * 180 * time.Hour))},
+	}
+	err = refreshToken.Create(sr.DB)
+	if err != nil {
+		fmt.Println(err)
+		return &response, HandlerError{500, errors.New("Internal Server Error"), err}
+	}
+
+	response.RefreshToken = refreshToken.Token
+	response.ExpiresAt = refreshToken.ExpiresAt
 	return &response, nil
 }

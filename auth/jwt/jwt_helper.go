@@ -9,14 +9,14 @@ import (
 )
 
 type Claim struct {
-	CredentialId string `json:"credential_id"`
+	CredentialUuid string `json:"credential_id"`
 	jwt.StandardClaims
 }
 
-func Generate(credentialId string) (string, error) {
+func Generate(credentialUuid string) (string, error) {
 	expirationTime := time.Now().Add(10 * time.Minute)
 	claims := &Claim{
-		CredentialId: credentialId,
+		CredentialUuid: credentialUuid,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},

@@ -7,6 +7,7 @@ import (
 
 	"github.com/obedtandadjaja/auth-go/auth/jwt"
 	"github.com/obedtandadjaja/auth-go/models/credential"
+	"github.com/obedtandadjaja/auth-go/models/refresh_token"
 )
 
 const (
@@ -48,14 +49,21 @@ func parseTokenRequest(r *http.Request) (*TokenRequest, error) {
 func processTokenRequest(sr *SharedResources, request *TokenRequest) (*TokenResponse, error) {
 	var response TokenResponse
 
-	credential, err := credential.FindBy(sr.DB, map[string]interface{}{
-		"id": request.RefreshToken,
+	refreshToken, err := refresh_token.FindBy(sr.DB, map[string]interface{}{
+		"token": request.RefreshToken,
 	})
 	if err != nil {
 		return &response, HandlerError{401, errors.New("Invalid refresh token"), err}
 	}
 
-	tokenString, err := jwt.Generate(credential.Id)
+	credential, err := credential.FindBy(sr.DB, map[string]interface{}{
+		"id": refreshToken.CredentialId,
+	})
+	if err != nil {
+		return &response, HandlerError{404, errors.New("Invalid refresh token"), err}
+	}
+
+	tokenString, err := jwt.Generate(credential.Uuid)
 	if err != nil {
 		return &response, HandlerError{500, err, err}
 	}
