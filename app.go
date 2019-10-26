@@ -80,7 +80,11 @@ func (app *App) runMigration() {
 		return
 	}
 
-	migration.Up()
+	log.Println("Starting migration...")
+
+	if err = migration.Up(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (app *App) Run(addr string) {
