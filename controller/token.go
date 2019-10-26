@@ -3,11 +3,8 @@ package controller
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
-	"time"
 
-	"github.com/obedtandadjaja/auth-go/auth/hash"
 	"github.com/obedtandadjaja/auth-go/auth/jwt"
 	"github.com/obedtandadjaja/auth-go/models/credential"
 )
@@ -17,8 +14,7 @@ const (
 )
 
 type TokenRequest struct {
-	CredentialId string `json:"credential_id"`
-	Password     string `json:"password"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 type TokenResponse struct {
@@ -53,36 +49,11 @@ func processTokenRequest(sr *SharedResources, request *TokenRequest) (*TokenResp
 	var response TokenResponse
 
 	credential, err := credential.FindBy(sr.DB, map[string]interface{}{
-		"id": request.CredentialId,
+		"id": request.RefreshToken,
 	})
 	if err != nil {
-		return &response, HandlerError{401, errors.New("Invalid credentials"), err}
+		return &response, HandlerError{401, errors.New("Invalid refresh token"), err}
 	}
-
-	if credential.LockedUntil.Valid && credential.LockedUntil.Time.After(time.Now()) {
-		return &response, HandlerError{
-			401,
-			errors.New(fmt.Sprintf("Locked until %v", credential.LockedUntil.Time.Sub(time.Now()))),
-			nil,
-		}
-	}
-
-	if hashValue := credential.Password.String; !hash.ValidatePasswordHash(request.Password, hashValue) {
-		if credential.FailedAttempts == MAX_FAILED_ATTEMPTS {
-			credential.Update(sr.DB, map[string]interface{}{
-				"locked_until": time.Now().Add(time.Duration(credential.FailedAttempts*10) * time.Minute),
-			})
-		}
-		credential.IncrementFailedAttempt(sr.DB)
-
-		return &response, HandlerError{401, errors.New("Invalid credentials"), nil}
-	}
-
-	// don't care about this error if there is any
-	err = credential.Update(sr.DB, map[string]interface{}{
-		"failed_attempts": 0,
-		"locked_until":    nil,
-	})
 
 	tokenString, err := jwt.Generate(credential.Id)
 	if err != nil {
