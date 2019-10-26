@@ -9,18 +9,20 @@ import (
 
 	"github.com/lib/pq"
 	"github.com/obedtandadjaja/auth-go/auth/hash"
+	"github.com/obedtandadjaja/auth-go/auth/jwt"
 	"github.com/obedtandadjaja/auth-go/models/credential"
 	"github.com/obedtandadjaja/auth-go/models/refresh_token"
 )
 
 type RefreshTokenRequest struct {
-	CredentialId string `json:"credential_id"`
-	Password     string `json:"password"`
+	CredentialUuid string `json:"credential_uuid"`
+	Password       string `json:"password"`
 }
 
 type RefreshTokenResponse struct {
-	RefreshToken string      `json:"refresh_token"`
-	ExpiresAt    pq.NullTime `json:"expires_at"`
+	Jwt          string `json:"jwt"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresAt    int64  `json:"expires_at"`
 }
 
 func RefreshToken(sr *SharedResources, w http.ResponseWriter, r *http.Request) error {
@@ -51,7 +53,7 @@ func processRefreshTokenRequest(sr *SharedResources, request *RefreshTokenReques
 	var response RefreshTokenResponse
 
 	credential, err := credential.FindBy(sr.DB, map[string]interface{}{
-		"id": request.CredentialId,
+		"uuid": request.CredentialUuid,
 	})
 	if err != nil {
 		return &response, HandlerError{401, errors.New("Invalid credentials"), err}
@@ -91,11 +93,16 @@ func processRefreshTokenRequest(sr *SharedResources, request *RefreshTokenReques
 	}
 	err = refreshToken.Create(sr.DB)
 	if err != nil {
-		fmt.Println(err)
 		return &response, HandlerError{500, errors.New("Internal Server Error"), err}
 	}
 
+	tokenString, err := jwt.Generate(credential.Uuid)
+	if err != nil {
+		return &response, HandlerError{500, err, err}
+	}
+
+	response.Jwt = tokenString
 	response.RefreshToken = refreshToken.Token
-	response.ExpiresAt = refreshToken.ExpiresAt
+	response.ExpiresAt = refreshToken.ExpiresAt.Time.Unix()
 	return &response, nil
 }

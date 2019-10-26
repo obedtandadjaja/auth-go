@@ -24,6 +24,12 @@ var routes = Routes{
 		controller.Token,
 	},
 	Route{
+		"Token",
+		"POST",
+		"/refresh-token",
+		controller.RefreshToken,
+	},
+	Route{
 		"Verify",
 		"POST",
 		"/verify",

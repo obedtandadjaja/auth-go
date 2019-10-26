@@ -39,9 +39,9 @@ func (refreshToken *RefreshToken) Create(db *sql.DB) error {
 	err = db.QueryRow(
 		`insert into refresh_tokens
 		 (token, credential_id, expires_at) values
-		 ($1, $2, $3) returning id`,
+		 ($1, $2, $3) returning id, token`,
 		token, refreshToken.CredentialId, refreshToken.ExpiresAt,
-	).Scan(&refreshToken.Id)
+	).Scan(&refreshToken.Id, &refreshToken.Token)
 
 	return err
 }
