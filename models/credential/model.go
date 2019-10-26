@@ -71,7 +71,7 @@ func (credential *Credential) Create(db *sql.DB) error {
 		 (password, last_signed_in, created_at, updated_at, ip_address) values
 		 ($1, $2, $3, $4, $5) returning uuid`,
 		hashValue, nil, time.Now(), time.Now(), credential.IpAddress,
-	).Scan(&credential.Id)
+	).Scan(&credential.Uuid)
 
 	return err
 }
