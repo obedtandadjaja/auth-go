@@ -134,6 +134,7 @@ func buildFromRow(row models.ScannableObject) (*Credential, error) {
 
 	err := row.Scan(
 		&credential.Id,
+		&credential.Uuid,
 		&credential.Password,
 		&credential.LastSignedIn,
 		&credential.CreatedAt,
