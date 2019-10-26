@@ -16,7 +16,7 @@ type ResetPasswordRequest struct {
 }
 
 type ResetPasswordResponse struct {
-	Id string `json:"id"`
+	Uuid string `json:"uuid"`
 }
 
 func ResetPassword(sr *controller.SharedResources, w http.ResponseWriter, r *http.Request) error {
@@ -61,6 +61,6 @@ func processResetPasswordRequest(sr *controller.SharedResources, request *ResetP
 		return &response, controller.HandlerError{401, errors.New("Wrong password reset token"), err}
 	}
 
-	response.Id = cred.Id
+	response.Uuid = cred.Uuid
 	return &response, nil
 }

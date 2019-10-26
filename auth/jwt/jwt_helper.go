@@ -9,7 +9,7 @@ import (
 )
 
 type Claim struct {
-	CredentialUuid string `json:"credential_id"`
+	CredentialUuid string `json:"credential_uuid"`
 	jwt.StandardClaims
 }
 
@@ -52,7 +52,7 @@ func Verify(tokenString string) (string, error) {
 		return "", fmt.Errorf("token has expired")
 	}
 
-	return token.Claims.(*Claim).CredentialId, nil
+	return token.Claims.(*Claim).CredentialUuid, nil
 }
 
 func secretKey() []byte {

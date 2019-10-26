@@ -17,7 +17,7 @@ type DeleteRequest struct {
 }
 
 type DeleteResponse struct {
-	Id string `json:"id"`
+	Uuid string `json:"uuid"`
 }
 
 func Delete(sr *controller.SharedResources, w http.ResponseWriter, r *http.Request) error {
@@ -61,6 +61,6 @@ func processDeleteRequest(sr *controller.SharedResources, request *DeleteRequest
 		return &response, controller.HandlerError{400, errors.New("Failed to delete credential"), err}
 	}
 
-	response.Id = cred.Id
+	response.Uuid = cred.Uuid
 	return &response, nil
 }
