@@ -82,7 +82,7 @@ func (app *App) runMigration() {
 
 	log.Println("Starting migration...")
 
-	if err = migration.Up(); err != nil {
+	if err = migration.Up(); err != migrate.ErrNoChange && err != nil {
 		log.Fatal(err)
 	}
 }
