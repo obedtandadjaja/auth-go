@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/lib/pq"
 	"github.com/obedtandadjaja/auth-go/auth/hash"
 	"github.com/obedtandadjaja/auth-go/auth/jwt"
 	"github.com/obedtandadjaja/auth-go/models/credential"
@@ -86,10 +85,8 @@ func processRefreshTokenRequest(sr *SharedResources, request *RefreshTokenReques
 	})
 
 	refreshToken := refresh_token.RefreshToken{
-		Id:           0,
-		Uuid:         "",
 		CredentialId: credential.Id,
-		ExpiresAt:    pq.NullTime{Time: time.Now().Add(time.Duration(24 * 180 * time.Hour))},
+		ExpiresAt:    time.Now().Add(time.Duration(24 * 180 * time.Hour)),
 	}
 	err = refreshToken.Create(sr.DB)
 	if err != nil {

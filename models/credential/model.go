@@ -67,8 +67,8 @@ func (credential *Credential) Create(db *sql.DB) error {
 	err = db.QueryRow(
 		`insert into credentials
 		 (password, last_signed_in, created_at, updated_at, ip_address) values
-		 ($1, $2, $3, $4, $5) returning uuid`,
-		hashValue, nil, time.Now(), time.Now(), credential.IpAddress,
+		 ($1, $2, $3, $4) returning uuid`,
+		hashValue, nil, time.Now(), time.Now(),
 	).Scan(&credential.Uuid)
 
 	return err
@@ -134,10 +134,8 @@ func buildFromRow(row models.ScannableObject) (*Credential, error) {
 		&credential.Id,
 		&credential.Uuid,
 		&credential.Password,
-		&credential.LastSignedIn,
 		&credential.CreatedAt,
 		&credential.UpdatedAt,
-		&credential.IpAddress,
 		&credential.FailedAttempts,
 		&credential.LockedUntil,
 		&credential.PasswordResetToken,
