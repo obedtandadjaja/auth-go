@@ -49,13 +49,20 @@ func parseTokenRequest(r *http.Request) (*TokenRequest, error) {
 func processTokenRequest(sr *SharedResources, request *TokenRequest) (*TokenResponse, error) {
 	var response TokenResponse
 
+	refreshTokenUuid, err := jwt.VerifyRefreshToken(request.RefreshToken)
+	if err != nil {
+		return &response, HandlerError{401, errors.New("Invalid refresh token"), err}
+	}
+
+	// find the refresh token record
 	refreshToken, err := refresh_token.FindBy(sr.DB, map[string]interface{}{
-		"token": request.RefreshToken,
+		"uuid": refreshTokenUuid,
 	})
 	if err != nil {
 		return &response, HandlerError{401, errors.New("Invalid refresh token"), err}
 	}
 
+	// find the credential record
 	credential, err := credential.FindBy(sr.DB, map[string]interface{}{
 		"id": refreshToken.CredentialId,
 	})
@@ -63,7 +70,7 @@ func processTokenRequest(sr *SharedResources, request *TokenRequest) (*TokenResp
 		return &response, HandlerError{404, errors.New("Invalid refresh token"), err}
 	}
 
-	tokenString, err := jwt.Generate(credential.Uuid)
+	tokenString, err := jwt.GenerateAccessToken(credential.Uuid)
 	if err != nil {
 		return &response, HandlerError{500, err, err}
 	}

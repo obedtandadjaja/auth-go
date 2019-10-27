@@ -13,8 +13,7 @@ type VerifyRequest struct {
 }
 
 type VerifyResponse struct {
-	CredentialId string `json:"credential_id"`
-	Verified     bool   `json:"verified"`
+	Verified bool `json:"verified"`
 }
 
 func Verify(sr *SharedResources, w http.ResponseWriter, r *http.Request) error {
@@ -44,13 +43,11 @@ func parseVerifyRequest(r *http.Request) (*VerifyRequest, error) {
 func processVerifyRequest(sr *SharedResources, request *VerifyRequest) (*VerifyResponse, error) {
 	var response VerifyResponse
 
-	credentialId, err := jwt.Verify(request.Jwt)
-
+	_, err := jwt.VerifyAccessToken(request.Jwt)
 	if err != nil {
 		return &response, HandlerError{400, errors.New("Invalid JWT token"), nil}
-	} else {
-		response.CredentialId = credentialId
-		response.Verified = true
 	}
+
+	response.Verified = true
 	return &response, nil
 }
