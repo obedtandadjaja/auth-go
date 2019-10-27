@@ -13,8 +13,8 @@ type RefreshToken struct {
 	Id             int
 	Uuid           string
 	CredentialId   int
-	IpAddress      string
-	UserAgent      string
+	IpAddress      sql.NullString
+	UserAgent      sql.NullString
 	LastAccessedAt time.Time
 	CreatedAt      time.Time
 	ExpiresAt      time.Time

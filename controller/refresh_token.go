@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -30,7 +31,7 @@ func RefreshToken(sr *SharedResources, w http.ResponseWriter, r *http.Request) e
 		return HandlerError{400, err, nil}
 	}
 
-	response, err := processRefreshTokenRequest(sr, request)
+	response, err := processRefreshTokenRequest(sr, request, r)
 	if err != nil {
 		return err
 	}
@@ -48,7 +49,7 @@ func parseRefreshTokenRequest(r *http.Request) (*RefreshTokenRequest, error) {
 	return &request, err
 }
 
-func processRefreshTokenRequest(sr *SharedResources, request *RefreshTokenRequest) (*RefreshTokenResponse, error) {
+func processRefreshTokenRequest(sr *SharedResources, request *RefreshTokenRequest, r *http.Request) (*RefreshTokenResponse, error) {
 	var response RefreshTokenResponse
 
 	credential, err := credential.FindBy(sr.DB, map[string]interface{}{
@@ -87,6 +88,8 @@ func processRefreshTokenRequest(sr *SharedResources, request *RefreshTokenReques
 	refreshToken := refresh_token.RefreshToken{
 		CredentialId: credential.Id,
 		ExpiresAt:    time.Now().Add(time.Duration(24 * 180 * time.Hour)),
+		IpAddress:    sql.NullString{String: r.RemoteAddr, Valid: true},
+		UserAgent:    sql.NullString{String: r.UserAgent(), Valid: true},
 	}
 	err = refreshToken.Create(sr.DB)
 	if err != nil {
