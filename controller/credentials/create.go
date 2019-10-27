@@ -47,8 +47,7 @@ func processCreateRequest(sr *controller.SharedResources, request *CreateRequest
 	var response CreateResponse
 
 	cred := credential.Credential{
-		Password:  sql.NullString{String: request.Password, Valid: true},
-		IpAddress: sql.NullString{String: r.RemoteAddr, Valid: true},
+		Password: sql.NullString{String: request.Password, Valid: true},
 	}
 
 	err := cred.Create(sr.DB)

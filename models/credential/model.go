@@ -16,10 +16,8 @@ type Credential struct {
 	Id                 int
 	Uuid               string
 	Password           sql.NullString
-	LastSignedIn       pq.NullTime
 	CreatedAt          pq.NullTime
 	UpdatedAt          pq.NullTime
-	IpAddress          sql.NullString
 	FailedAttempts     int
 	LockedUntil        pq.NullTime
 	PasswordResetToken sql.NullString

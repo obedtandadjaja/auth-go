@@ -5,8 +5,8 @@ CREATE TABLE IF NOT EXISTS credentials (
   uuid           uuid DEFAULT uuid_generate_v4(),
   password       varchar(128),
   last_signed_in timestamp,
-  created_at     timestamp,
-  updated_at     timestamp
+  created_at     timestamp DEFAULT now(),
+  updated_at     timestamp DEFAULT now()
 );
 ALTER SEQUENCE credentials_id_seq OWNED BY credentials.id;
 CREATE INDEX IF NOT EXISTS credentials_uuid_idx ON credentials(uuid);
