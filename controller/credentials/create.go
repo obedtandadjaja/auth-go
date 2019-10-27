@@ -3,7 +3,6 @@ package credentials
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"github.com/obedtandadjaja/auth-go/controller"
@@ -21,7 +20,7 @@ type CreateResponse struct {
 func Create(sr *controller.SharedResources, w http.ResponseWriter, r *http.Request) error {
 	request, err := parseCreateRequest(r)
 	if err != nil {
-		return controller.HandlerError{400, err, err}
+		return controller.HandlerError{400, "", err}
 	}
 
 	response, err := processCreateRequest(sr, request, r)
@@ -54,7 +53,7 @@ func processCreateRequest(sr *controller.SharedResources, request *CreateRequest
 	if err != nil {
 		return &response, controller.HandlerError{
 			400,
-			errors.New("Failed to create credential"),
+			"Failed to create credential",
 			err,
 		}
 	}

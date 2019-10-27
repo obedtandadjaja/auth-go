@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"github.com/obedtandadjaja/auth-go/auth/jwt"
@@ -25,7 +24,7 @@ type TokenResponse struct {
 func Token(sr *SharedResources, w http.ResponseWriter, r *http.Request) error {
 	request, err := parseTokenRequest(r)
 	if err != nil {
-		return HandlerError{400, err, nil}
+		return HandlerError{400, "", err}
 	}
 
 	response, err := processTokenRequest(sr, request)
@@ -51,7 +50,7 @@ func processTokenRequest(sr *SharedResources, request *TokenRequest) (*TokenResp
 
 	refreshTokenUuid, err := jwt.VerifyRefreshToken(request.RefreshToken)
 	if err != nil {
-		return &response, HandlerError{401, errors.New("Invalid refresh token"), err}
+		return &response, HandlerError{401, "Invalid refresh token", err}
 	}
 
 	// find the refresh token record
@@ -59,7 +58,7 @@ func processTokenRequest(sr *SharedResources, request *TokenRequest) (*TokenResp
 		"uuid": refreshTokenUuid,
 	})
 	if err != nil {
-		return &response, HandlerError{401, errors.New("Invalid refresh token"), err}
+		return &response, HandlerError{401, "Invalid refresh token", err}
 	}
 
 	// find the credential record
@@ -67,12 +66,12 @@ func processTokenRequest(sr *SharedResources, request *TokenRequest) (*TokenResp
 		"id": refreshToken.CredentialId,
 	})
 	if err != nil {
-		return &response, HandlerError{404, errors.New("Invalid refresh token"), err}
+		return &response, HandlerError{404, "Invalid refresh token", err}
 	}
 
 	tokenString, err := jwt.GenerateAccessToken(credential.Uuid)
 	if err != nil {
-		return &response, HandlerError{500, err, err}
+		return &response, HandlerError{500, "Internal Server Error", err}
 	}
 
 	response.Jwt = tokenString

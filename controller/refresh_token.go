@@ -3,7 +3,6 @@ package controller
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -27,7 +26,7 @@ type RefreshTokenResponse struct {
 func RefreshToken(sr *SharedResources, w http.ResponseWriter, r *http.Request) error {
 	request, err := parseRefreshTokenRequest(r)
 	if err != nil {
-		return HandlerError{400, err, nil}
+		return HandlerError{400, "", err}
 	}
 
 	response, err := processRefreshTokenRequest(sr, request, r)
@@ -55,13 +54,13 @@ func processRefreshTokenRequest(sr *SharedResources, request *RefreshTokenReques
 		"uuid": request.CredentialUuid,
 	})
 	if err != nil {
-		return &response, HandlerError{401, errors.New("Invalid credentials"), err}
+		return &response, HandlerError{401, "Invalid credentials", err}
 	}
 
 	if credential.LockedUntil.Valid && credential.LockedUntil.Time.After(time.Now()) {
 		return &response, HandlerError{
 			401,
-			errors.New(fmt.Sprintf("Locked until %v", credential.LockedUntil.Time.Sub(time.Now()))),
+			fmt.Sprintf("Locked until %v", credential.LockedUntil.Time.Sub(time.Now())),
 			nil,
 		}
 	}
@@ -74,7 +73,7 @@ func processRefreshTokenRequest(sr *SharedResources, request *RefreshTokenReques
 		}
 		credential.IncrementFailedAttempt(sr.DB)
 
-		return &response, HandlerError{401, errors.New("Invalid credentials"), nil}
+		return &response, HandlerError{401, "Invalid credentials", nil}
 	}
 
 	// TODO: move this as a goroutine
@@ -92,17 +91,17 @@ func processRefreshTokenRequest(sr *SharedResources, request *RefreshTokenReques
 	}
 	err = refreshToken.Create(sr.DB)
 	if err != nil {
-		return &response, HandlerError{500, errors.New("Internal Server Error"), err}
+		return &response, HandlerError{500, "Internal Server Error", err}
 	}
 
 	refreshTokenJwt, err := jwt.GenerateRefreshToken(refreshToken.Uuid)
 	if err != nil {
-		return &response, HandlerError{500, err, err}
+		return &response, HandlerError{500, "Internal Server Error", err}
 	}
 
 	accessTokenJwt, err := jwt.GenerateAccessToken(credential.Uuid)
 	if err != nil {
-		return &response, HandlerError{500, err, err}
+		return &response, HandlerError{500, "Internal Server Error", err}
 	}
 
 	response.Jwt = accessTokenJwt

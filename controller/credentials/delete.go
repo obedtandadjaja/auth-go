@@ -5,7 +5,6 @@ package credentials
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"github.com/obedtandadjaja/auth-go/controller"
@@ -23,12 +22,12 @@ type DeleteResponse struct {
 func Delete(sr *controller.SharedResources, w http.ResponseWriter, r *http.Request) error {
 	request, err := parseDeleteRequest(r)
 	if err != nil {
-		return controller.HandlerError{400, err, err}
+		return controller.HandlerError{400, "", err}
 	}
 
 	response, err := processDeleteRequest(sr, request, r)
 	if err != nil {
-		return controller.HandlerError{400, err, err}
+		return err
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -53,12 +52,12 @@ func processDeleteRequest(sr *controller.SharedResources, request *DeleteRequest
 	})
 
 	if err != nil {
-		return &response, controller.HandlerError{404, errors.New("Credential not found"), err}
+		return &response, controller.HandlerError{404, "Credential not found", err}
 	}
 
 	err = cred.Delete(sr.DB)
 	if err != nil {
-		return &response, controller.HandlerError{400, errors.New("Failed to delete credential"), err}
+		return &response, controller.HandlerError{400, "Failed to delete credential", err}
 	}
 
 	response.Uuid = cred.Uuid

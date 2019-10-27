@@ -2,7 +2,6 @@ package credentials
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"github.com/obedtandadjaja/auth-go/controller"
@@ -20,7 +19,7 @@ type InitiatePasswordResetResponse struct {
 func InitiatePasswordReset(sr *controller.SharedResources, w http.ResponseWriter, r *http.Request) error {
 	request, err := parseInitiatePasswordResetRequest(r)
 	if err != nil {
-		return controller.HandlerError{400, err, err}
+		return controller.HandlerError{400, "", err}
 	}
 
 	response, err := processInitiatePasswordResetRequest(sr, request, r)
@@ -48,12 +47,12 @@ func processInitiatePasswordResetRequest(sr *controller.SharedResources, request
 		"id": request.CredentialId,
 	})
 	if err != nil {
-		return &response, controller.HandlerError{404, errors.New("Credential not found"), err}
+		return &response, controller.HandlerError{404, "Credential not found", err}
 	}
 
 	err = cred.SetPasswordResetToken(sr.DB)
 	if err != nil {
-		return &response, controller.HandlerError{400, errors.New("Failed to initiate password reset"), err}
+		return &response, controller.HandlerError{400, "Failed to initiate password reset", err}
 	}
 
 	response.PasswordResetToken = cred.PasswordResetToken.String

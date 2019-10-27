@@ -12,25 +12,13 @@ type HttpError interface {
 }
 
 type HandlerError struct {
-	Code        int
-	Err         error
-	OriginalErr error
-}
-
-func (error HandlerError) Status() int {
-	return error.Code
+	Code    int
+	Message string
+	Err     error
 }
 
 func (error HandlerError) Error() string {
-	return error.Err.Error()
-}
-
-func (error HandlerError) OriginalError() (string, bool) {
-	if error.OriginalErr == nil {
-		return "", false
-	}
-
-	return error.OriginalErr.Error(), true
+	return error.Message
 }
 
 type SharedResources struct {
@@ -50,17 +38,17 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch e := err.(type) {
 		case HandlerError:
-			if originalErr, ok := e.OriginalError(); ok {
-				log.Printf("ERROR: %s\n", originalErr)
+			if error := e.Err; error != nil {
+				log.Printf("ERROR: %s\n", error)
 			}
 
-			log.Printf("HTTP %d - %s\n", e.Status(), e)
+			log.Printf("HTTP %d - %s\n", e.Code, e)
 
 			// on prod error codes >= 500 should not be returned
-			if h.SharedResources.Env == "production" && e.Status() >= 500 {
-				http.Error(w, "Internal Server Error", e.Status())
+			if h.SharedResources.Env == "production" && e.Code >= 500 {
+				http.Error(w, "Internal Server Error", e.Code)
 			} else {
-				http.Error(w, e.Error(), e.Status())
+				http.Error(w, e.Err.Error(), e.Code)
 			}
 		default:
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

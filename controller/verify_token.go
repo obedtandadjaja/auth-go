@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"github.com/obedtandadjaja/auth-go/auth/jwt"
@@ -19,7 +18,7 @@ type VerifyResponse struct {
 func Verify(sr *SharedResources, w http.ResponseWriter, r *http.Request) error {
 	request, err := parseVerifyRequest(r)
 	if err != nil {
-		return HandlerError{400, err, nil}
+		return HandlerError{400, "", err}
 	}
 
 	response, err := processVerifyRequest(sr, request)
@@ -45,7 +44,7 @@ func processVerifyRequest(sr *SharedResources, request *VerifyRequest) (*VerifyR
 
 	_, err := jwt.VerifyAccessToken(request.Jwt)
 	if err != nil {
-		return &response, HandlerError{400, errors.New("Invalid JWT token"), nil}
+		return &response, HandlerError{400, "Invalid JWT token", err}
 	}
 
 	response.Verified = true
