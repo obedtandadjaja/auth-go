@@ -40,7 +40,7 @@ func (refreshToken *RefreshToken) Create(db *sql.DB) error {
 	err := db.QueryRow(
 		`insert into refresh_tokens
 		 (credential_id, ip_address, user_agent, expires_at) values
-		 ($1, $2, $3, $4) returning id, token`,
+		 ($1, $2, $3, $4) returning id, uuid`,
 		refreshToken.CredentialId, refreshToken.IpAddress, refreshToken.UserAgent, refreshToken.ExpiresAt,
 	).Scan(&refreshToken.Id, &refreshToken.Uuid)
 

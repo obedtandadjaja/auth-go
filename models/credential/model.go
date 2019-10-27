@@ -66,9 +66,9 @@ func (credential *Credential) Create(db *sql.DB) error {
 
 	err = db.QueryRow(
 		`insert into credentials
-		 (password, last_signed_in, created_at, updated_at) values
-		 ($1, $2, $3, $4) returning uuid`,
-		hashValue, nil, time.Now(), time.Now(),
+		 (password, created_at, updated_at) values
+		 ($1, $2, $3) returning uuid`,
+		hashValue, time.Now(), time.Now(),
 	).Scan(&credential.Uuid)
 
 	return err

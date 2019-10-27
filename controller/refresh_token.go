@@ -22,7 +22,6 @@ type RefreshTokenRequest struct {
 type RefreshTokenResponse struct {
 	Jwt          string `json:"jwt"`
 	RefreshToken string `json:"refresh_token"`
-	ExpiresAt    int64  `json:"expires_at"`
 }
 
 func RefreshToken(sr *SharedResources, w http.ResponseWriter, r *http.Request) error {
