@@ -6,13 +6,12 @@ import (
 	"strings"
 
 	"github.com/lib/pq"
-	"github.com/obedtandadjaja/auth-go/auth/secure_random"
 	"github.com/obedtandadjaja/auth-go/models"
 )
 
 type RefreshToken struct {
 	Id           int
-	Token        string
+	Uuid         string
 	CredentialId int
 	ExpiresAt    pq.NullTime
 }
@@ -34,14 +33,12 @@ func FindBy(db *sql.DB, fields map[string]interface{}) (*RefreshToken, error) {
 }
 
 func (refreshToken *RefreshToken) Create(db *sql.DB) error {
-	token, err := secure_random.GenerateRandomString(500)
-
-	err = db.QueryRow(
+	err := db.QueryRow(
 		`insert into refresh_tokens
 		 (token, credential_id, expires_at) values
-		 ($1, $2, $3) returning id, token`,
-		token, refreshToken.CredentialId, refreshToken.ExpiresAt,
-	).Scan(&refreshToken.Id, &refreshToken.Token)
+		 ($1, $2) returning id, token`,
+		refreshToken.CredentialId, refreshToken.ExpiresAt,
+	).Scan(&refreshToken.Id, &refreshToken.Uuid)
 
 	return err
 }
@@ -51,7 +48,7 @@ func buildFromRow(row models.ScannableObject) (*RefreshToken, error) {
 
 	err := row.Scan(
 		&refreshToken.Id,
-		&refreshToken.Token,
+		&refreshToken.Uuid,
 		&refreshToken.CredentialId,
 		&refreshToken.ExpiresAt,
 	)

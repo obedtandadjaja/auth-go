@@ -87,7 +87,7 @@ func processRefreshTokenRequest(sr *SharedResources, request *RefreshTokenReques
 
 	refreshToken := refresh_token.RefreshToken{
 		Id:           0,
-		Token:        "",
+		Uuid:         "",
 		CredentialId: credential.Id,
 		ExpiresAt:    pq.NullTime{Time: time.Now().Add(time.Duration(24 * 180 * time.Hour))},
 	}
@@ -96,13 +96,17 @@ func processRefreshTokenRequest(sr *SharedResources, request *RefreshTokenReques
 		return &response, HandlerError{500, errors.New("Internal Server Error"), err}
 	}
 
-	tokenString, err := jwt.Generate(credential.Uuid)
+	refreshTokenJwt, err := jwt.GenerateRefreshToken(refreshToken.Uuid)
 	if err != nil {
 		return &response, HandlerError{500, err, err}
 	}
 
-	response.Jwt = tokenString
-	response.RefreshToken = refreshToken.Token
-	response.ExpiresAt = refreshToken.ExpiresAt.Time.Unix()
+	accessTokenJwt, err := jwt.GenerateAccessToken(credential.Uuid)
+	if err != nil {
+		return &response, HandlerError{500, err, err}
+	}
+
+	response.Jwt = accessTokenJwt
+	response.RefreshToken = refreshTokenJwt
 	return &response, nil
 }

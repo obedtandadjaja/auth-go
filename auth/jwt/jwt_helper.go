@@ -8,14 +8,38 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-type Claim struct {
+type RefreshTokenClaim struct {
+	RefreshTokenUuid string `json:"refresh_token_uuid"`
+	jwt.StandardClaims
+}
+
+type AccessTokenClaim struct {
 	CredentialUuid string `json:"credential_uuid"`
 	jwt.StandardClaims
 }
 
-func Generate(credentialUuid string) (string, error) {
+func GenerateRefreshToken(refreshTokenUuid string) (string, error) {
+	expirationTime := time.Now().Add(10 * 24 * time.Hour)
+	claims := &RefreshTokenClaim{
+		RefreshTokenUuid: refreshTokenUuid,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	tokenString, err := token.SignedString(secretKey())
+	if err != nil {
+		return "", fmt.Errorf("error exchanging jwt token")
+	}
+
+	return tokenString, nil
+}
+
+func GenerateAccessToken(credentialUuid string) (string, error) {
 	expirationTime := time.Now().Add(10 * time.Minute)
-	claims := &Claim{
+	claims := &AccessTokenClaim{
 		CredentialUuid: credentialUuid,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
@@ -32,27 +56,38 @@ func Generate(credentialUuid string) (string, error) {
 	return tokenString, nil
 }
 
-func Verify(tokenString string) (string, error) {
+func VerifyRefreshToken(tokenString string) (string, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenString,
-		&Claim{},
+		&RefreshTokenClaim{},
 		func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("There was an error")
 			}
 			return secretKey(), nil
 		})
-
 	if err != nil {
 		return "", err
 	}
 
-	// this is already done via .Valid(); retaining this here for future examples
-	if token.Claims.(*Claim).ExpiresAt < time.Now().Unix() {
-		return "", fmt.Errorf("token has expired")
+	return token.Claims.(*RefreshTokenClaim).RefreshTokenUuid, nil
+}
+
+func VerifyAccessToken(tokenString string) (string, error) {
+	token, err := jwt.ParseWithClaims(
+		tokenString,
+		&AccessTokenClaim{},
+		func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("There was an error")
+			}
+			return secretKey(), nil
+		})
+	if err != nil {
+		return "", err
 	}
 
-	return token.Claims.(*Claim).CredentialUuid, nil
+	return token.Claims.(*AccessTokenClaim).CredentialUuid, nil
 }
 
 func secretKey() []byte {
