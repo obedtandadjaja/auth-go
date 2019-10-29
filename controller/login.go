@@ -10,26 +10,26 @@ import (
 	"github.com/obedtandadjaja/auth-go/auth/hash"
 	"github.com/obedtandadjaja/auth-go/auth/jwt"
 	"github.com/obedtandadjaja/auth-go/models/credential"
-	"github.com/obedtandadjaja/auth-go/models/refresh_token"
+	"github.com/obedtandadjaja/auth-go/models/session"
 )
 
-type RefreshTokenRequest struct {
+type LoginRequest struct {
 	CredentialUuid string `json:"credential_uuid"`
 	Password       string `json:"password"`
 }
 
-type RefreshTokenResponse struct {
-	Jwt          string `json:"jwt"`
-	RefreshToken string `json:"refresh_token"`
+type LoginResponse struct {
+	Jwt        string `json:"jwt"`
+	SessionJwt string `json:"session"`
 }
 
-func RefreshToken(sr *SharedResources, w http.ResponseWriter, r *http.Request) error {
-	request, err := parseRefreshTokenRequest(r)
+func Login(sr *SharedResources, w http.ResponseWriter, r *http.Request) error {
+	request, err := parseLoginRequest(r)
 	if err != nil {
 		return HandlerError{400, "", err}
 	}
 
-	response, err := processRefreshTokenRequest(sr, request, r)
+	response, err := processLoginRequest(sr, request, r)
 	if err != nil {
 		return err
 	}
@@ -40,15 +40,15 @@ func RefreshToken(sr *SharedResources, w http.ResponseWriter, r *http.Request) e
 	return nil
 }
 
-func parseRefreshTokenRequest(r *http.Request) (*RefreshTokenRequest, error) {
-	var request RefreshTokenRequest
+func parseLoginRequest(r *http.Request) (*LoginRequest, error) {
+	var request LoginRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 
 	return &request, err
 }
 
-func processRefreshTokenRequest(sr *SharedResources, request *RefreshTokenRequest, r *http.Request) (*RefreshTokenResponse, error) {
-	var response RefreshTokenResponse
+func processLoginRequest(sr *SharedResources, request *LoginRequest, r *http.Request) (*LoginResponse, error) {
+	var response LoginResponse
 
 	credential, err := credential.FindBy(sr.DB, map[string]interface{}{
 		"uuid": request.CredentialUuid,
@@ -83,18 +83,18 @@ func processRefreshTokenRequest(sr *SharedResources, request *RefreshTokenReques
 		"locked_until":    nil,
 	})
 
-	refreshToken := refresh_token.RefreshToken{
+	newSession := session.Session{
 		CredentialId: credential.Id,
 		ExpiresAt:    time.Now().Add(time.Duration(24 * 180 * time.Hour)),
 		IpAddress:    sql.NullString{String: r.RemoteAddr, Valid: true},
 		UserAgent:    sql.NullString{String: r.UserAgent(), Valid: true},
 	}
-	err = refreshToken.Create(sr.DB)
+	err = newSession.Create(sr.DB)
 	if err != nil {
 		return &response, HandlerError{500, "Internal Server Error", err}
 	}
 
-	refreshTokenJwt, err := jwt.GenerateRefreshToken(refreshToken.Uuid)
+	sessionJwt, err := jwt.GenerateRefreshToken(newSession.Uuid)
 	if err != nil {
 		return &response, HandlerError{500, "Internal Server Error", err}
 	}
@@ -105,6 +105,6 @@ func processRefreshTokenRequest(sr *SharedResources, request *RefreshTokenReques
 	}
 
 	response.Jwt = accessTokenJwt
-	response.RefreshToken = refreshTokenJwt
+	response.SessionJwt = sessionJwt
 	return &response, nil
 }

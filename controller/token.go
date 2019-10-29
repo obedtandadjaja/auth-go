@@ -6,7 +6,7 @@ import (
 
 	"github.com/obedtandadjaja/auth-go/auth/jwt"
 	"github.com/obedtandadjaja/auth-go/models/credential"
-	"github.com/obedtandadjaja/auth-go/models/refresh_token"
+	"github.com/obedtandadjaja/auth-go/models/session"
 )
 
 const (
@@ -14,7 +14,7 @@ const (
 )
 
 type TokenRequest struct {
-	RefreshToken string `json:"refresh_token"`
+	SessionJwt string `json:"session"`
 }
 
 type TokenResponse struct {
@@ -48,13 +48,13 @@ func parseTokenRequest(r *http.Request) (*TokenRequest, error) {
 func processTokenRequest(sr *SharedResources, request *TokenRequest) (*TokenResponse, error) {
 	var response TokenResponse
 
-	refreshTokenUuid, err := jwt.VerifyRefreshToken(request.RefreshToken)
+	refreshTokenUuid, err := jwt.VerifyRefreshToken(request.SessionJwt)
 	if err != nil {
 		return &response, HandlerError{401, "Invalid refresh token", err}
 	}
 
 	// find the refresh token record
-	refreshToken, err := refresh_token.FindBy(sr.DB, map[string]interface{}{
+	sessionRecord, err := session.FindBy(sr.DB, map[string]interface{}{
 		"uuid": refreshTokenUuid,
 	})
 	if err != nil {
@@ -63,7 +63,7 @@ func processTokenRequest(sr *SharedResources, request *TokenRequest) (*TokenResp
 
 	// find the credential record
 	credential, err := credential.FindBy(sr.DB, map[string]interface{}{
-		"id": refreshToken.CredentialId,
+		"id": sessionRecord.CredentialId,
 	})
 	if err != nil {
 		return &response, HandlerError{404, "Invalid refresh token", err}
