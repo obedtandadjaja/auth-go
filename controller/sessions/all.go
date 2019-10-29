@@ -1,4 +1,4 @@
-package sessions
+package refresh_tokens
 
 import "github.com/obedtandadjaja/auth-go/models/session"
 
