@@ -1,5 +1,5 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE SEQUENCE IF NOT EXISTS session_id_seq;
+CREATE SEQUENCE IF NOT EXISTS sessions_id_seq;
 CREATE TABLE IF NOT EXISTS sessions(
   id               int PRIMARY KEY DEFAULT nextval('sessions_id_seq'),
   uuid             uuid DEFAULT uuid_generate_v4(),

@@ -14,7 +14,7 @@ type CreateRequest struct {
 }
 
 type CreateResponse struct {
-	Uuid string `json:"uuid"`
+	CredentialUuid string `json:"credential_uuid"`
 }
 
 func Create(sr *controller.SharedResources, w http.ResponseWriter, r *http.Request) error {
@@ -58,6 +58,6 @@ func processCreateRequest(sr *controller.SharedResources, request *CreateRequest
 		}
 	}
 
-	response.Uuid = cred.Uuid
+	response.CredentialUuid = cred.Uuid
 	return &response, nil
 }

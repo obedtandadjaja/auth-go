@@ -26,7 +26,7 @@ var routes = Routes{
 	Route{
 		"Token",
 		"POST",
-		"/refresh-token",
+		"/login",
 		controller.Login,
 	},
 	Route{

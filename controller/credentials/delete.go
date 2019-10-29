@@ -12,11 +12,11 @@ import (
 )
 
 type DeleteRequest struct {
-	CredentialId string `json:"credential_id"`
+	CredentialUuid string `json:"credential_uuid"`
 }
 
 type DeleteResponse struct {
-	Uuid string `json:"uuid"`
+	CredentialUuid string `json:"credential_uuid"`
 }
 
 func Delete(sr *controller.SharedResources, w http.ResponseWriter, r *http.Request) error {
@@ -48,7 +48,7 @@ func processDeleteRequest(sr *controller.SharedResources, request *DeleteRequest
 	var response DeleteResponse
 
 	cred, err := credential.FindBy(sr.DB, map[string]interface{}{
-		"id": request.CredentialId,
+		"uuid": request.CredentialUuid,
 	})
 
 	if err != nil {
@@ -60,6 +60,6 @@ func processDeleteRequest(sr *controller.SharedResources, request *DeleteRequest
 		return &response, controller.HandlerError{400, "Failed to delete credential", err}
 	}
 
-	response.Uuid = cred.Uuid
+	response.CredentialUuid = cred.Uuid
 	return &response, nil
 }
