@@ -6,11 +6,6 @@ import (
 	"net/http"
 )
 
-type HttpError interface {
-	error
-	Status() int
-}
-
 type HandlerError struct {
 	Code    int
 	Message string
