@@ -69,6 +69,10 @@ func processTokenRequest(sr *SharedResources, request *TokenRequest) (*TokenResp
 		return &response, HandlerError{404, "Invalid refresh token", err}
 	}
 
+	go func() {
+		sessionRecord.UpdateLastAccessedAt(sr.DB)
+	}()
+
 	tokenString, err := jwt.GenerateAccessToken(credential.Uuid)
 	if err != nil {
 		return &response, HandlerError{500, "Internal Server Error", err}

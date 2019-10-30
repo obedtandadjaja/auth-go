@@ -47,6 +47,12 @@ func (session *Session) Create(db *sql.DB) error {
 	return err
 }
 
+func (session *Session) UpdateLastAccessedAt(db *sql.DB) error {
+	_, err := db.Exec(`update sessions set last_accessed_at = now() where id = $1`, session.Id)
+
+	return err
+}
+
 func buildFromRow(row models.ScannableObject) (*Session, error) {
 	var session Session
 
