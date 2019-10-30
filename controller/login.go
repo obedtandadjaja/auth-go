@@ -76,12 +76,12 @@ func processLoginRequest(sr *SharedResources, request *LoginRequest, r *http.Req
 		return &response, HandlerError{401, "Invalid credentials", nil}
 	}
 
-	// TODO: move this as a goroutine
-	// don't care about this error if there is any
-	err = credential.Update(sr.DB, map[string]interface{}{
-		"failed_attempts": 0,
-		"locked_until":    nil,
-	})
+	go func() {
+		credential.Update(sr.DB, map[string]interface{}{
+			"failed_attempts": 0,
+			"locked_until":    nil,
+		})
+	}()
 
 	newSession := session.Session{
 		CredentialId: credential.Id,
@@ -94,17 +94,20 @@ func processLoginRequest(sr *SharedResources, request *LoginRequest, r *http.Req
 		return &response, HandlerError{500, "Internal Server Error", err}
 	}
 
-	sessionJwt, err := jwt.GenerateRefreshToken(newSession.Uuid)
-	if err != nil {
-		return &response, HandlerError{500, "Internal Server Error", err}
-	}
+	refreshTokenChan := make(chan string)
+	accessTokenChan := make(chan string)
 
-	accessTokenJwt, err := jwt.GenerateAccessToken(credential.Uuid)
-	if err != nil {
-		return &response, HandlerError{500, "Internal Server Error", err}
-	}
+	go func() {
+		refreshTokenJwt, _ := jwt.GenerateRefreshToken(newSession.Uuid)
+		refreshTokenChan <- refreshTokenJwt
+	}()
 
-	response.Jwt = accessTokenJwt
-	response.SessionJwt = sessionJwt
+	go func() {
+		accessTokenJwt, _ := jwt.GenerateAccessToken(credential.Uuid)
+		accessTokenChan <- accessTokenJwt
+	}()
+
+	response.Jwt = <-accessTokenChan
+	response.SessionJwt = <-refreshTokenChan
 	return &response, nil
 }
