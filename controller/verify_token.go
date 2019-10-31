@@ -44,7 +44,7 @@ func processVerifyRequest(sr *SharedResources, request *VerifyRequest) (*VerifyR
 
 	_, err := jwt.VerifyAccessToken(request.Jwt)
 	if err != nil {
-		return &response, HandlerError{400, "Invalid JWT token", err}
+		return &response, HandlerError{401, "Invalid JWT token", err}
 	}
 
 	response.Verified = true
