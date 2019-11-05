@@ -1,4 +1,4 @@
-FROM golang:latest
+FROM golang:latest as builder
 
 LABEL maintainer="Obed Tandadjaja <obed.tandadjaja@gmail.com>"
 
@@ -15,11 +15,14 @@ RUN go mod download
 # Copy the source from the current directory to the Working Directory inside the container
 COPY . .
 
-# Build the Go app
-RUN go build -o go-auth .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
+
+FROM scratch
+COPY --from=builder /auth-go/main .
+ADD https://curl.haxx.se/ca/cacert.pem /etc/ssl/ca-bundle.pem
 
 # Expose port 8080 to the outside world
 EXPOSE 8080
 
 # Command to run the executable
-CMD ["./go-auth"]
+CMD ["./main"]
