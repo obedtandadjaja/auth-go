@@ -22,12 +22,7 @@ jobs:
             - go-mod-v1-{{ checksum "go.sum" }}
 
       # Test database set up
-      - run: |
-          echo "deb http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
-          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-          sudo apt-get update
-          sudo apt-get install libpq5
-          sudo apt-get install postgresql-client-9.6
+      - run: sudo apt install -y postgresql-client
       - run: |
           psql \
           -d $TEST_DATABASE_URL \
@@ -41,4 +36,14 @@ jobs:
           paths:
             - "/go/pkg/mod"
 
+      - run:
+          name: Waiting for Postgres to be ready
+          command: |
+            for i in `seq 1 10`;
+            do
+              nc -z localhost 5432 && echo Success && exit 0
+              echo -n .
+              sleep 1
+            done
+            echo Failed waiting for Postgres && exit 1
       - run: make test
