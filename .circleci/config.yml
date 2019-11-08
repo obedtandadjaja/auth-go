@@ -35,7 +35,7 @@ jobs:
             echo Failed waiting for Postgres && exit 1
       - run: |
           psql \
-          -d $TEST_DATABASE_URL \
+          -d $TEST_DB_URL \
           -c "CREATE DATABASE auth_test;"
 
       - run: go mod download
