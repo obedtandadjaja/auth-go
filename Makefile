@@ -37,4 +37,4 @@ test:
          APP_PORT=$(APP_PORT); \
   go clean; \
   go build; \
-  go test
+  go test -v -race ./...
