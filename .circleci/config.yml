@@ -8,7 +8,7 @@ jobs:
           TEST_DB_USER: "postgres"
           TEST_DB_URL: "postgresql://postgres@localhost:5432"
       - image: circleci/postgres:9.6-alpine-ram
-    working_directory: /go/src/github.com/obedtandadjaja/${GCP_PROJECT_ID}
+    working_directory: /go/src/github.com/obedtandadjaja/auth-go
     steps:
       - checkout
       - restore_cache:
