@@ -18,6 +18,12 @@ type Routes []Route
 
 var routes = Routes{
 	Route{
+		"Health",
+		"GET",
+		"/health",
+		controller.Health,
+	},
+	Route{
 		"Token",
 		"POST",
 		"/token",
