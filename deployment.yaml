@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+name: auth-go-deployment
+labels:
+  app: auth-go
+  spec:
+replicas: 3
+selector:
+  matchLabels:
+    app: auth-go
+template:
+  metadata:
+    labels:
+      app: auth-go
+  spec:
+    containers:
+      - name: auth-go
+        image: gcr.io/obedt-dev/auth-go:master
+        env:
+          - name: APP_PORT
+            value: "3000"
+        readinessProbe:
+          httpGet:
+            path: "/api/health"
+            port: 3000
+          initialDelaySeconds: 2
+          timeoutSeconds: 5
+          periodSeconds: 6
+          successThreshold: 2
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: 150m
+            memory: 200Mi
+          limits:
+            cpu: 200m
+            memory: 220Mi
+        ports:
+          - containerPort: 3000
