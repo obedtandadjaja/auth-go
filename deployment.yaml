@@ -27,7 +27,7 @@ spec:
               value: "3000"
           readinessProbe:
             httpGet:
-              path: "/api/health"
+              path: "/health"
               port: 3000
             initialDelaySeconds: 2
             timeoutSeconds: 5
