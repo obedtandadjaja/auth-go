@@ -90,7 +90,7 @@ jobs:
                 DEPLOYMENT_SUFFIX="stg"
             fi
 
-            template=`cat "deployment.yml" | sed "s/{{IMAGE_TAG}}/$CIRCLE_SHA1/g" | sed "s/{{ENV}}/$DEPLOYMENT_SUFFIX/g"`
+            template=`cat "deployment.yaml" | sed "s/{{IMAGE_TAG}}/$CIRCLE_SHA1/g" | sed "s/{{ENV}}/$DEPLOYMENT_SUFFIX/g"`
 
             echo "$template" | kubectl apply -f -
 
