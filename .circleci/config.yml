@@ -50,7 +50,7 @@ jobs:
     # dynamically tracks the latest build for each branch).
     docker:
       - image: bayesimpact/circleci:latest
-    working_directory: ~/repo
+    working_directory: /go/src/github.com/obedtandadjaja/auth-go
     steps:
       - checkout
       - setup_remote_docker
@@ -71,6 +71,29 @@ jobs:
             docker push gcr.io/${GCP_PROJECT_ID}/auth-go:${CIRCLE_SHA1}
             docker push gcr.io/${GCP_PROJECT_ID}/auth-go:${CIRCLE_BRANCH}
 
+  kubernetes_deploy:
+    docker:
+      - image: google/cloud-sdk:alpine
+    working_directory: /go/src/github.com/obedtandadjaja/auth-go
+    steps:
+      - run:
+          name: Deploy the current commit on this branch to the GKE cluster
+          command: |
+            gcloud components install kubectl
+            echo "${GKE_CD_SERVICE_ACCOUNT_KEY}" > .key.json
+            gcloud auth activate-service-account --key-file .key.json
+            gcloud config set compute/zone "${GKE_ZONE}"
+            gcloud config set project "${GCP_PROJECT_ID}"
+            gcloud container clusters get-credentials "${GKE_CLUSTER}" --zone "${GKE_ZONE}"
+
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+                DEPLOYMENT_SUFFIX="stg"
+            fi
+
+            template=`cat "deployment.yml" | sed "s/{{IMAGE_TAG}}/$CIRCLE_SHA1/g" | sed "s/{{ENV}}/$DEPLOYMENT_SUFFIX/g"`
+
+            echo "$template" | kubectl apply -f -
+
 # all workflows are only valid on master
 workflows:
   version: 2
@@ -88,10 +111,10 @@ workflows:
                 - master
           requires:
             - build_and_test
-      # - kubernetes_deploy:
-      #     filters:
-      #       branches:
-      #         only:
-      #           - master
-      #     requires:
-      #       - docker_push
+      - kubernetes_deploy:
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - docker_push

@@ -16,7 +16,7 @@ template:
   spec:
     containers:
       - name: auth-go
-        image: gcr.io/obedt-dev/auth-go:master
+        image: gcr.io/obedt-dev/auth-go-{{ENV}}:{{IMAGE_TAG}}
         env:
           - name: APP_PORT
             value: "3000"
