@@ -76,6 +76,7 @@ jobs:
       - image: google/cloud-sdk:alpine
     working_directory: /go/src/github.com/obedtandadjaja/auth-go
     steps:
+      - checkout
       - run:
           name: Deploy the current commit on this branch to the GKE cluster
           command: |
