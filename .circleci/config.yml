@@ -87,12 +87,11 @@ jobs:
             gcloud config set project "${GCP_PROJECT_ID}"
             gcloud container clusters get-credentials "${GKE_CLUSTER}" --zone "${GKE_ZONE}"
 
-            if [ "${CIRCLE_BRANCH}" == "master" ]; then
-                DEPLOYMENT_SUFFIX="stg"
-            fi
+            DEPLOYMENT_SUFFIX="-stg"
+
+            kubectl apply -f k8/config-env-stage.yaml
 
             template=`cat "deployment.yaml" | sed "s/{{IMAGE_TAG}}/$CIRCLE_SHA1/g" | sed "s/{{ENV}}/$DEPLOYMENT_SUFFIX/g"`
-
             echo "$template" | kubectl apply -f -
 
 # all workflows are only valid on master

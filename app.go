@@ -38,10 +38,19 @@ func (app *App) Initialize(env, host, port, user, password, dbName string) {
 }
 
 func (app *App) initializeDB(host, port, user, password, dbName string) error {
-	connectionString := fmt.Sprintf(
-		"postgresql://%v:%v@%v:%v/%v?sslmode=disable",
-		user, password, host, port, dbName,
-	)
+	var connectionString string
+
+	if app.Env == "development" {
+		connectionString = fmt.Sprintf(
+			"postgresql://%v:%v@%v:%v/%v?sslmode=disable",
+			user, password, host, port, dbName,
+		)
+	} else {
+		connectionString = fmt.Sprintf(
+			"postgresql://%v:%v@%v/%v",
+			user, password, host, dbName,
+		)
+	}
 
 	db, err := sql.Open("postgres", connectionString)
 	if err != nil {
