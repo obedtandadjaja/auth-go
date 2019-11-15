@@ -21,7 +21,7 @@ FROM scratch
 COPY --from=builder /auth-go/main .
 ADD https://curl.haxx.se/ca/cacert.pem /etc/ssl/ca-bundle.pem
 
-# Expose port 8080 to the outside world
+# Expose port 3000 to the outside world
 EXPOSE 3000
 
 # Command to run the executable
