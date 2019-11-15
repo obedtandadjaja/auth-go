@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/obedtandadjaja/auth-go/auth/hash"
 	"github.com/obedtandadjaja/auth-go/controller"
 	"github.com/obedtandadjaja/auth-go/models/credential"
 )
 
 type ResetPasswordRequest struct {
-	CredentialId       string `json:"identifier"`
+	CredentialId       string `json:"credential_uuid"`
 	PasswordResetToken string `json:"password_reset_token"`
 	NewPassword        string `json:"new_password"`
 }
@@ -56,7 +57,7 @@ func processResetPasswordRequest(sr *controller.SharedResources, request *ResetP
 		return &response, controller.HandlerError{400, "Credential did not apply for password reset", err}
 	}
 
-	if cred.PasswordResetToken.String != request.PasswordResetToken {
+	if !hash.ValidatePasswordHash(request.PasswordResetToken, cred.Password.String) {
 		return &response, controller.HandlerError{401, "Wrong password reset token", err}
 	}
 

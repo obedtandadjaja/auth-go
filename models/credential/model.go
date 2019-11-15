@@ -116,8 +116,8 @@ func (credential *Credential) UpdatePassword(db *sql.DB) error {
 	return err
 }
 
-func (credential *Credential) SetPasswordResetToken(db *sql.DB) error {
-	hashValue, err := hash.HashPassword(fmt.Sprintf("%v", time.Now().Unix()))
+func (credential *Credential) SetPasswordResetToken(db *sql.DB, token string) error {
+	hashValue, err := hash.HashPassword(token)
 	if err != nil {
 		return nil
 	}
