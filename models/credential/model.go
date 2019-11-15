@@ -13,14 +13,15 @@ import (
 )
 
 type Credential struct {
-	Id                 int
-	Uuid               string
-	Password           sql.NullString
-	CreatedAt          pq.NullTime
-	UpdatedAt          pq.NullTime
-	FailedAttempts     int
-	LockedUntil        pq.NullTime
-	PasswordResetToken sql.NullString
+	Id                          int
+	Uuid                        string
+	Password                    sql.NullString
+	CreatedAt                   pq.NullTime
+	UpdatedAt                   pq.NullTime
+	FailedAttempts              int
+	LockedUntil                 pq.NullTime
+	PasswordResetToken          sql.NullString
+	PasswordResetTokenExpiresAt pq.NullTime
 }
 
 func All(db *sql.DB) ([]*Credential, error) {
@@ -139,6 +140,7 @@ func buildFromRow(row models.ScannableObject) (*Credential, error) {
 		&credential.FailedAttempts,
 		&credential.LockedUntil,
 		&credential.PasswordResetToken,
+		&credential.PasswordResetTokenExpiresAt,
 	)
 
 	if err != nil {

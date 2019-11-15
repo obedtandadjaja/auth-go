@@ -3,6 +3,7 @@ package credentials
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/obedtandadjaja/auth-go/auth/hash"
 	"github.com/obedtandadjaja/auth-go/controller"
@@ -55,6 +56,10 @@ func processResetPasswordRequest(sr *controller.SharedResources, request *ResetP
 
 	if !cred.PasswordResetToken.Valid {
 		return &response, controller.HandlerError{400, "Credential did not apply for password reset", err}
+	}
+
+	if cred.PasswordResetTokenExpiresAt.Valid && cred.PasswordResetTokenExpiresAt.Time.Before(time.Now()) {
+		return &response, controller.HandlerError{401, "Wrong password reset token", err}
 	}
 
 	if !hash.ValidatePasswordHash(request.PasswordResetToken, cred.Password.String) {
