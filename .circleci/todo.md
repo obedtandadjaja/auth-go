@@ -1,7 +1,4 @@
 features:
-- make reset token hashed
-- make reset token to expire
-- make verify reset token to match hash
 - hook up with email service
   - initiate reset token to accept email param and send reset email
     - need to also accept the subject (app name)
