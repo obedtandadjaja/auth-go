@@ -4,7 +4,7 @@ metadata:
   name: auth-go-stg-env
   namespace: default
 data:
-  ENV: 'prod'
+  ENV: 'stage'
   DB_HOST: '34.87.58.197'
   DB_PORT: '5432'
   DB_USER: 'postgres'
