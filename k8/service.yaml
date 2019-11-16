@@ -8,6 +8,6 @@ spec:
   selector:
     app: auth-go
   ports:
-    - name: http
+    - name: tcp
       port: 80
       targetPort: 3000
