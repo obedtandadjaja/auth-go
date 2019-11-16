@@ -22,9 +22,6 @@ spec:
                 name: auth-go{{ENV}}-env
             - secretRef:
                 name: auth-go{{ENV}}-env
-          env:
-            - name: APP_PORT
-              value: "3000"
           readinessProbe:
             httpGet:
               path: "/health"

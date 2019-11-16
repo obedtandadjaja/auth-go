@@ -9,5 +9,5 @@ data:
   DB_PORT: ''
   DB_USER: 'postgres'
   DB_NAME: 'auth'
-  APP_HOST: 'localhost'
+  APP_HOST: ''
   APP_PORT: '3000'
