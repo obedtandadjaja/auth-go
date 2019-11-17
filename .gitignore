@@ -13,5 +13,3 @@
 
 # golang vendors
 vendor/*
-
-.auth-go
