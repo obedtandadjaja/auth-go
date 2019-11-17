@@ -5,7 +5,7 @@ metadata:
   namespace: default
 data:
   ENV: 'stage'
-  DB_HOST: 'obedt-dev:asia-southeast1:auth-go'
+  DB_HOST: '/cloudsql/obedt-dev:asia-southeast1:auth-go'
   DB_PORT: '5432'
   DB_USER: 'postgres'
   DB_NAME: 'auth'
