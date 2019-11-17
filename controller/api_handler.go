@@ -42,8 +42,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			// on prod error codes >= 500 should not be returned
 			if h.SharedResources.Env == "production" && e.Code >= 500 {
 				http.Error(w, "Internal Server Error", e.Code)
-			} else {
+			} else if h.SharedResources.Env != "production" && e.Code >= 500 {
 				http.Error(w, e.Err.Error(), e.Code)
+			} else {
+				http.Error(w, e.Message, e.Code)
 			}
 		default:
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
