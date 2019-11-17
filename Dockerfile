@@ -19,6 +19,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 
 FROM alpine:latest
 COPY --from=builder /auth-go/main .
+COPY --from=builder /auth-go/migrations ./migrations
 ADD https://curl.haxx.se/ca/cacert.pem /etc/ssl/ca-bundle.pem
 
 # Expose port 3000 to the outside world
