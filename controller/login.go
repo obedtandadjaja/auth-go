@@ -3,6 +3,7 @@ package controller
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -15,6 +16,7 @@ import (
 
 type LoginRequest struct {
 	CredentialUuid string `json:"credential_uuid"`
+	Email          string `json:"email"`
 	Password       string `json:"password"`
 }
 
@@ -26,7 +28,7 @@ type LoginResponse struct {
 func Login(sr *SharedResources, w http.ResponseWriter, r *http.Request) error {
 	request, err := parseLoginRequest(r)
 	if err != nil {
-		return HandlerError{400, "", err}
+		return HandlerError{400, err.Error(), err}
 	}
 
 	response, err := processLoginRequest(sr, request, r)
@@ -44,47 +46,59 @@ func parseLoginRequest(r *http.Request) (*LoginRequest, error) {
 	var request LoginRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 
+	if request.Email == "" && request.CredentialUuid == "" {
+		return &request, errors.New("Missing required field")
+	}
+
 	return &request, err
 }
 
 func processLoginRequest(sr *SharedResources, request *LoginRequest, r *http.Request) (*LoginResponse, error) {
 	var response LoginResponse
+	var cred *credential.Credential
+	var err error
 
-	credential, err := credential.FindBy(sr.DB, map[string]interface{}{
-		"uuid": request.CredentialUuid,
-	})
+	if request.CredentialUuid != "" {
+		cred, err = credential.FindBy(sr.DB, map[string]interface{}{
+			"uuid": request.CredentialUuid,
+		})
+	} else {
+		cred, err = credential.FindBy(sr.DB, map[string]interface{}{
+			"email": request.Email,
+		})
+	}
 	if err != nil {
 		return &response, HandlerError{401, "Invalid credentials", err}
 	}
 
-	if credential.LockedUntil.Valid && credential.LockedUntil.Time.After(time.Now()) {
+	if cred.LockedUntil.Valid && cred.LockedUntil.Time.After(time.Now()) {
 		return &response, HandlerError{
 			401,
-			fmt.Sprintf("Locked until %v", credential.LockedUntil.Time.Sub(time.Now())),
+			fmt.Sprintf("Locked until %v", cred.LockedUntil.Time.Sub(time.Now())),
 			nil,
 		}
 	}
 
-	if hashValue := credential.Password.String; !hash.ValidatePasswordHash(request.Password, hashValue) {
-		if credential.FailedAttempts == MAX_FAILED_ATTEMPTS {
-			credential.Update(sr.DB, map[string]interface{}{
-				"locked_until": time.Now().Add(time.Duration(credential.FailedAttempts*10) * time.Minute),
+	if hashValue := cred.Password.String; !hash.ValidatePasswordHash(request.Password, hashValue) {
+		if cred.FailedAttempts == MAX_FAILED_ATTEMPTS {
+			cred.Update(sr.DB, map[string]interface{}{
+				"locked_until": time.Now().Add(time.Duration(cred.FailedAttempts*10) * time.Minute),
 			})
 		}
-		credential.IncrementFailedAttempt(sr.DB)
+		cred.IncrementFailedAttempt(sr.DB)
 
 		return &response, HandlerError{401, "Invalid credentials", nil}
 	}
 
 	go func() {
-		credential.Update(sr.DB, map[string]interface{}{
+		cred.Update(sr.DB, map[string]interface{}{
 			"failed_attempts": 0,
 			"locked_until":    nil,
 		})
 	}()
 
 	newSession := session.Session{
-		CredentialId: credential.Id,
+		CredentialId: cred.Id,
 		ExpiresAt:    time.Now().Add(time.Duration(24 * 180 * time.Hour)),
 		IpAddress:    sql.NullString{String: r.RemoteAddr, Valid: true},
 		UserAgent:    sql.NullString{String: r.UserAgent(), Valid: true},
@@ -103,7 +117,7 @@ func processLoginRequest(sr *SharedResources, request *LoginRequest, r *http.Req
 	}()
 
 	go func() {
-		accessTokenJwt, _ := jwt.GenerateAccessToken(credential.Uuid)
+		accessTokenJwt, _ := jwt.GenerateAccessToken(cred.Uuid)
 		accessTokenChan <- accessTokenJwt
 	}()
 

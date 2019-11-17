@@ -3,6 +3,7 @@ package credentials
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/obedtandadjaja/auth-go/controller"
@@ -10,6 +11,8 @@ import (
 )
 
 type CreateRequest struct {
+	Email    string `json:"email"`
+	Phone    string `json:"phone"`
 	Password string `json:"password"`
 }
 
@@ -20,7 +23,7 @@ type CreateResponse struct {
 func Create(sr *controller.SharedResources, w http.ResponseWriter, r *http.Request) error {
 	request, err := parseCreateRequest(r)
 	if err != nil {
-		return controller.HandlerError{400, "", err}
+		return controller.HandlerError{400, err.Error(), err}
 	}
 
 	response, err := processCreateRequest(sr, request, r)
@@ -39,6 +42,10 @@ func parseCreateRequest(r *http.Request) (*CreateRequest, error) {
 	var request CreateRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 
+	if request.Password == "" {
+		return &request, errors.New("Missing required field")
+	}
+
 	return &request, err
 }
 
@@ -46,6 +53,8 @@ func processCreateRequest(sr *controller.SharedResources, request *CreateRequest
 	var response CreateResponse
 
 	cred := credential.Credential{
+		Email:    sql.NullString{String: request.Email, Valid: request.Email != ""},
+		Phone:    sql.NullString{String: request.Phone, Valid: request.Phone != ""},
 		Password: sql.NullString{String: request.Password, Valid: true},
 	}
 

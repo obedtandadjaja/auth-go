@@ -64,7 +64,7 @@ func TestCreateCredentialInvalidRequest(t *testing.T) {
 func TestCreateCredential(t *testing.T) {
 	clearCredentialsTable()
 
-	rr, responseBody := createCredential("password")
+	rr, responseBody := createCredential("email@email.com", "5591111111", "password")
 	checkResponseCode(t, http.StatusCreated, rr.Code)
 
 	if uuid, ok := responseBody["credential_uuid"]; ok {
@@ -84,8 +84,8 @@ func TestCreateCredential(t *testing.T) {
 	}
 }
 
-func createCredential(password string) (*httptest.ResponseRecorder, map[string]interface{}) {
-	jsonString := fmt.Sprintf(`{"password":"%s"}`, password)
+func createCredential(email, phone, password string) (*httptest.ResponseRecorder, map[string]interface{}) {
+	jsonString := fmt.Sprintf(`{"email":"%s","phone":"%s","password":"%s"}`, email, phone, password)
 
 	payload := []byte(jsonString)
 
@@ -100,7 +100,7 @@ func createCredential(password string) (*httptest.ResponseRecorder, map[string]i
 func TestDeleteCredential(t *testing.T) {
 	clearCredentialsTable()
 
-	rr, createResponseBody := createCredential("password")
+	rr, createResponseBody := createCredential("email@email.com", "5591111111", "password")
 
 	rr, deleteResponseBody := deleteCredential(createResponseBody["credential_uuid"].(string))
 
@@ -134,9 +134,14 @@ func deleteCredential(credentialId string) (*httptest.ResponseRecorder, map[stri
 func TestLogin(t *testing.T) {
 	clearCredentialsTable()
 
-	rr, createResponseBody := createCredential("password")
+	rr, createResponseBody := createCredential("email@email.com", "", "password")
 
-	rr, loginResponseBody := login(createResponseBody["credential_uuid"].(string), "password")
+	// try logging in with cred uuid
+	rr, loginResponseBody := loginWithUuid(createResponseBody["credential_uuid"].(string), "password")
+	checkResponseCode(t, http.StatusOK, rr.Code)
+
+	// try logging in with email
+	rr, loginResponseBody = loginWithEmail("email@email.com", "password")
 	checkResponseCode(t, http.StatusOK, rr.Code)
 
 	jwt := loginResponseBody["jwt"].(string)
@@ -157,8 +162,20 @@ func TestLogin(t *testing.T) {
 	}
 }
 
-func login(credentialUuid, password string) (*httptest.ResponseRecorder, map[string]interface{}) {
+func loginWithUuid(credentialUuid, password string) (*httptest.ResponseRecorder, map[string]interface{}) {
 	jsonString := fmt.Sprintf(`{"credential_uuid":"%s","password":"%s"}`, credentialUuid, password)
+
+	payload := []byte(jsonString)
+
+	req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(payload))
+
+	rr, responseBody := executeRequest(req)
+
+	return rr, responseBody
+}
+
+func loginWithEmail(email, password string) (*httptest.ResponseRecorder, map[string]interface{}) {
+	jsonString := fmt.Sprintf(`{"email":"%s","password":"%s"}`, email, password)
 
 	payload := []byte(jsonString)
 

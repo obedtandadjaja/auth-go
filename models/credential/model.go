@@ -22,6 +22,8 @@ type Credential struct {
 	LockedUntil                 pq.NullTime
 	PasswordResetToken          sql.NullString
 	PasswordResetTokenExpiresAt pq.NullTime
+	Email                       sql.NullString
+	Phone                       sql.NullString
 }
 
 func All(db *sql.DB) ([]*Credential, error) {
@@ -67,9 +69,9 @@ func (credential *Credential) Create(db *sql.DB) error {
 
 	err = db.QueryRow(
 		`insert into credentials
-		 (password, created_at, updated_at) values
-		 ($1, $2, $3) returning uuid`,
-		hashValue, time.Now(), time.Now(),
+		 (email, phone, password, created_at, updated_at) values
+		 ($1, $2, $3, $4, $5) returning uuid`,
+		credential.Email, credential.Phone, hashValue, time.Now(), time.Now(),
 	).Scan(&credential.Uuid)
 
 	return err
@@ -141,6 +143,8 @@ func buildFromRow(row models.ScannableObject) (*Credential, error) {
 		&credential.LockedUntil,
 		&credential.PasswordResetToken,
 		&credential.PasswordResetTokenExpiresAt,
+		&credential.Email,
+		&credential.Phone,
 	)
 
 	if err != nil {
