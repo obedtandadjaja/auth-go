@@ -5,8 +5,8 @@ metadata:
   namespace: default
 data:
   ENV: 'stage'
-  DB_HOST: 'obedt-dev:asia-southeast1:auth-go'
-  DB_PORT: '5432'
+  DB_HOST: 'localhost'
+  DB_PORT: '3306'
   DB_USER: 'postgres'
   DB_NAME: 'auth'
   APP_HOST: ''

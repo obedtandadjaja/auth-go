@@ -14,6 +14,10 @@ spec:
       labels:
         app: auth-go
     spec:
+      volumes:
+        - name: cloudsql-instance-credentials
+          secret:
+            secretName: cloudsql-instance-credentials
       containers:
         - name: auth-go{{ENV}}
           image: gcr.io/obedt-dev/auth-go:{{IMAGE_TAG}}
@@ -40,3 +44,15 @@ spec:
               memory: 220Mi
           ports:
             - containerPort: 3000
+        - name: cloudsql-proxy
+          image: gcr.io/cloudsql-docker/gce-proxy:1.11
+          command: ["/cloud_sql_proxy",
+          "-instances=obedt-dev:asia-southeast1:auth-go=tcp:3306",
+          "-credential_file=/secrets/cloudsql/credentials.json"]
+          securityContext:
+            runAsUser: 2  # non-root user
+            allowPrivilegeEscalation: false
+          volumeMounts:
+            - name: cloudsql-instance-credentials
+              mountPath: /secrets/cloudsql
+              readOnly: true

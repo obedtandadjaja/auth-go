@@ -39,25 +39,14 @@ func (app *App) Initialize(env, host, port, user, password, dbName string) {
 
 func (app *App) initializeDB(host, port, user, password, dbName string) error {
 	var connectionString string
-	var db *sql.DB
-	var err error
 
-	if app.Env == "development" {
-		connectionString = fmt.Sprintf(
-			"postgresql://%v:%v@%v:%v/%v?sslmode=disable",
-			user, password, host, port, dbName,
-		)
-		fmt.Printf("Connecting to database... %v\n", connectionString)
-		db, err = sql.Open("postgres", connectionString)
-	} else {
-		connectionString := fmt.Sprintf(
-			"host=/cloudsql/%s user=%s password=%s dbname=%s sslmode=disable",
-			host, user, password, dbName,
-		)
-		fmt.Printf("Connecting to database... %v\n", connectionString)
-		db, err = sql.Open("postgres", connectionString)
-	}
+	connectionString = fmt.Sprintf(
+		"postgresql://%v:%v@%v:%v/%v?sslmode=disable",
+		user, password, host, port, dbName,
+	)
 
+	fmt.Printf("Connecting to database... %v\n", connectionString)
+	db, err := sql.Open("postgres", connectionString)
 	if err != nil {
 		fmt.Println(err)
 		return err
