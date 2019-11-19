@@ -5,9 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
+	"github.com/obedtandadjaja/auth-go/auth/jwt"
 	"github.com/obedtandadjaja/auth-go/controller"
 	"github.com/obedtandadjaja/auth-go/models/credential"
+	"github.com/obedtandadjaja/auth-go/models/session"
 )
 
 type CreateRequest struct {
@@ -18,6 +21,8 @@ type CreateRequest struct {
 
 type CreateResponse struct {
 	CredentialUuid string `json:"credential_uuid"`
+	Jwt            string `json:"jwt"`
+	SessionJwt     string `json:"session"`
 }
 
 func Create(sr *controller.SharedResources, w http.ResponseWriter, r *http.Request) error {
@@ -67,6 +72,32 @@ func processCreateRequest(sr *controller.SharedResources, request *CreateRequest
 		}
 	}
 
+	newSession := session.Session{
+		CredentialId: cred.Id,
+		ExpiresAt:    time.Now().Add(time.Duration(24 * 180 * time.Hour)),
+		IpAddress:    sql.NullString{String: r.RemoteAddr, Valid: true},
+		UserAgent:    sql.NullString{String: r.UserAgent(), Valid: true},
+	}
+	err = newSession.Create(sr.DB)
+	if err != nil {
+		return &response, controller.HandlerError{500, "Internal Server Error", err}
+	}
+
+	refreshTokenChan := make(chan string)
+	accessTokenChan := make(chan string)
+
+	go func() {
+		refreshTokenJwt, _ := jwt.GenerateRefreshToken(newSession.Uuid)
+		refreshTokenChan <- refreshTokenJwt
+	}()
+
+	go func() {
+		accessTokenJwt, _ := jwt.GenerateAccessToken(cred.Uuid)
+		accessTokenChan <- accessTokenJwt
+	}()
+
+	response.Jwt = <-accessTokenChan
+	response.SessionJwt = <-refreshTokenChan
 	response.CredentialUuid = cred.Uuid
 	return &response, nil
 }

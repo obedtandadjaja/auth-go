@@ -162,6 +162,30 @@ func TestLogin(t *testing.T) {
 	}
 }
 
+func TestTokenAfterCreate(t *testing.T) {
+	clearCredentialsTable()
+
+	rr, createResponseBody := createCredential("email@email.com", "", "password")
+	checkResponseCode(t, http.StatusCreated, rr.Code)
+
+	jwt := createResponseBody["jwt"].(string)
+	session := createResponseBody["session"].(string)
+
+	rr, verifyResponseBody := verifyToken(jwt)
+	checkResponseCode(t, http.StatusOK, rr.Code)
+
+	if !verifyResponseBody["verified"].(bool) {
+		t.Errorf("Invalid jwt token")
+	}
+
+	rr, tokenResponseBody := token(session)
+	checkResponseCode(t, http.StatusOK, rr.Code)
+
+	if _, ok := tokenResponseBody["jwt"]; !ok {
+		t.Errorf("Invalid session jwt")
+	}
+}
+
 func loginWithUuid(credentialUuid, password string) (*httptest.ResponseRecorder, map[string]interface{}) {
 	jsonString := fmt.Sprintf(`{"credential_uuid":"%s","password":"%s"}`, credentialUuid, password)
 

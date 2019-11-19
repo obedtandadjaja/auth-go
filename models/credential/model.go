@@ -70,9 +70,9 @@ func (credential *Credential) Create(db *sql.DB) error {
 	err = db.QueryRow(
 		`insert into credentials
 		 (email, phone, password, created_at, updated_at) values
-		 ($1, $2, $3, $4, $5) returning uuid`,
+		 ($1, $2, $3, $4, $5) returning id, uuid`,
 		credential.Email, credential.Phone, hashValue, time.Now(), time.Now(),
-	).Scan(&credential.Uuid)
+	).Scan(&credential.Id, &credential.Uuid)
 
 	return err
 }
