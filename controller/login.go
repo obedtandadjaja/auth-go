@@ -21,8 +21,9 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	Jwt        string `json:"jwt"`
-	SessionJwt string `json:"session"`
+	Jwt            string `json:"jwt"`
+	SessionJwt     string `json:"session"`
+	CredentialUuid string `json:"credential_uuid"`
 }
 
 func Login(sr *SharedResources, w http.ResponseWriter, r *http.Request) error {
@@ -123,5 +124,6 @@ func processLoginRequest(sr *SharedResources, request *LoginRequest, r *http.Req
 
 	response.Jwt = <-accessTokenChan
 	response.SessionJwt = <-refreshTokenChan
+	response.CredentialUuid = cred.Uuid
 	return &response, nil
 }
