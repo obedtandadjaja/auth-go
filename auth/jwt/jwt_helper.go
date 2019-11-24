@@ -8,7 +8,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-type RefreshTokenClaim struct {
+type SessionTokenClaim struct {
 	CredentialUuid string `json:"credential_uuid"`
 	SessionUuid    string `json:"session_uuid"`
 	jwt.StandardClaims
@@ -19,9 +19,9 @@ type AccessTokenClaim struct {
 	jwt.StandardClaims
 }
 
-func GenerateRefreshToken(credentialUuid, sessionUuid string) (string, error) {
+func GenerateSessionToken(credentialUuid, sessionUuid string) (string, error) {
 	expirationTime := time.Now().Add(10 * 24 * time.Hour)
-	claims := &RefreshTokenClaim{
+	claims := &SessionTokenClaim{
 		CredentialUuid: credentialUuid,
 		SessionUuid:    sessionUuid,
 		StandardClaims: jwt.StandardClaims{
@@ -58,10 +58,10 @@ func GenerateAccessToken(credentialUuid string) (string, error) {
 	return tokenString, nil
 }
 
-func VerifyRefreshToken(tokenString string) (string, error) {
+func VerifySessionToken(tokenString string) (string, string, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenString,
-		&RefreshTokenClaim{},
+		&SessionTokenClaim{},
 		func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("There was an error")
@@ -69,10 +69,12 @@ func VerifyRefreshToken(tokenString string) (string, error) {
 			return secretKey(), nil
 		})
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return token.Claims.(*RefreshTokenClaim).SessionUuid, nil
+	return token.Claims.(*SessionTokenClaim).CredentialUuid,
+		token.Claims.(*SessionTokenClaim).SessionUuid,
+		nil
 }
 
 func VerifyAccessToken(tokenString string) (string, error) {

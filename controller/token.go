@@ -48,25 +48,27 @@ func parseTokenRequest(r *http.Request) (*TokenRequest, error) {
 func processTokenRequest(sr *SharedResources, request *TokenRequest) (*TokenResponse, error) {
 	var response TokenResponse
 
-	sessionUuid, err := jwt.VerifyRefreshToken(request.SessionJwt)
+	credentialUuid, sessionUuid, err := jwt.VerifySessionToken(request.SessionJwt)
 	if err != nil {
-		return &response, HandlerError{401, "Invalid refresh token", err}
+		return &response, HandlerError{401, "Invalid session token", err}
 	}
 
-	// find the refresh token record
+	// TODO: can make this into goroutine
+	// find the session token record
 	sessionRecord, err := session.FindBy(sr.DB, map[string]interface{}{
 		"uuid": sessionUuid,
 	})
 	if err != nil {
-		return &response, HandlerError{401, "Invalid refresh token", err}
+		return &response, HandlerError{401, "Invalid session token", err}
 	}
 
+	// TODO: can make this into goroutine
 	// find the credential record
 	credential, err := credential.FindBy(sr.DB, map[string]interface{}{
-		"id": sessionRecord.CredentialId,
+		"uuid": credentialUuid,
 	})
 	if err != nil {
-		return &response, HandlerError{404, "Invalid refresh token", err}
+		return &response, HandlerError{404, "Invalid session token", err}
 	}
 
 	go func() {

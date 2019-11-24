@@ -83,12 +83,12 @@ func processCreateRequest(sr *controller.SharedResources, request *CreateRequest
 		return &response, controller.HandlerError{500, "Internal Server Error", err}
 	}
 
-	refreshTokenChan := make(chan string)
+	sessionTokenChan := make(chan string)
 	accessTokenChan := make(chan string)
 
 	go func() {
-		refreshTokenJwt, _ := jwt.GenerateRefreshToken(cred.Uuid, newSession.Uuid)
-		refreshTokenChan <- refreshTokenJwt
+		sessionTokenJwt, _ := jwt.GenerateSessionToken(cred.Uuid, newSession.Uuid)
+		sessionTokenChan <- sessionTokenJwt
 	}()
 
 	go func() {
@@ -97,7 +97,7 @@ func processCreateRequest(sr *controller.SharedResources, request *CreateRequest
 	}()
 
 	response.Jwt = <-accessTokenChan
-	response.SessionJwt = <-refreshTokenChan
+	response.SessionJwt = <-sessionTokenChan
 	response.CredentialUuid = cred.Uuid
 	return &response, nil
 }

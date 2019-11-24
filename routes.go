@@ -36,6 +36,12 @@ var routes = Routes{
 		controller.Login,
 	},
 	Route{
+		"VerifySessionToken",
+		"POST",
+		"/verify_session_token",
+		controller.VerifySessionToken,
+	},
+	Route{
 		"Verify",
 		"POST",
 		"/verify",

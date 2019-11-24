@@ -186,6 +186,18 @@ func TestTokenAfterCreate(t *testing.T) {
 	}
 }
 
+func TestVerifySessionToken(t *testing.T) {
+	clearCredentialsTable()
+
+	rr, createResponseBody := createCredential("email@email.com", "", "password")
+	checkResponseCode(t, http.StatusCreated, rr.Code)
+
+	session := createResponseBody["session"].(string)
+
+	rr, _ = verifySessionToken(session)
+	checkResponseCode(t, http.StatusOK, rr.Code)
+}
+
 func loginWithUuid(credentialUuid, password string) (*httptest.ResponseRecorder, map[string]interface{}) {
 	jsonString := fmt.Sprintf(`{"credential_uuid":"%s","password":"%s"}`, credentialUuid, password)
 
@@ -228,6 +240,18 @@ func verifyToken(accessTokenJwt string) (*httptest.ResponseRecorder, map[string]
 	payload := []byte(jsonString)
 
 	req, _ := http.NewRequest("POST", "/verify", bytes.NewBuffer(payload))
+
+	rr, responseBody := executeRequest(req)
+
+	return rr, responseBody
+}
+
+func verifySessionToken(sessionTokenJwt string) (*httptest.ResponseRecorder, map[string]interface{}) {
+	jsonString := fmt.Sprintf(`{"session":"%s"}`, sessionTokenJwt)
+
+	payload := []byte(jsonString)
+
+	req, _ := http.NewRequest("POST", "/verify_session_token", bytes.NewBuffer(payload))
 
 	rr, responseBody := executeRequest(req)
 
