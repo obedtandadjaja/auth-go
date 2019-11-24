@@ -87,7 +87,7 @@ func processCreateRequest(sr *controller.SharedResources, request *CreateRequest
 	accessTokenChan := make(chan string)
 
 	go func() {
-		refreshTokenJwt, _ := jwt.GenerateRefreshToken(newSession.Uuid)
+		refreshTokenJwt, _ := jwt.GenerateRefreshToken(cred.Uuid, newSession.Uuid)
 		refreshTokenChan <- refreshTokenJwt
 	}()
 

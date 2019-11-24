@@ -9,7 +9,8 @@ import (
 )
 
 type RefreshTokenClaim struct {
-	RefreshTokenUuid string `json:"refresh_token_uuid"`
+	CredentialUuid string `json:"credential_uuid"`
+	SessionUuid    string `json:"session_uuid"`
 	jwt.StandardClaims
 }
 
@@ -18,10 +19,11 @@ type AccessTokenClaim struct {
 	jwt.StandardClaims
 }
 
-func GenerateRefreshToken(refreshTokenUuid string) (string, error) {
+func GenerateRefreshToken(credentialUuid, sessionUuid string) (string, error) {
 	expirationTime := time.Now().Add(10 * 24 * time.Hour)
 	claims := &RefreshTokenClaim{
-		RefreshTokenUuid: refreshTokenUuid,
+		CredentialUuid: credentialUuid,
+		SessionUuid:    sessionUuid,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -70,7 +72,7 @@ func VerifyRefreshToken(tokenString string) (string, error) {
 		return "", err
 	}
 
-	return token.Claims.(*RefreshTokenClaim).RefreshTokenUuid, nil
+	return token.Claims.(*RefreshTokenClaim).SessionUuid, nil
 }
 
 func VerifyAccessToken(tokenString string) (string, error) {

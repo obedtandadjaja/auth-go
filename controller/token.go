@@ -48,14 +48,14 @@ func parseTokenRequest(r *http.Request) (*TokenRequest, error) {
 func processTokenRequest(sr *SharedResources, request *TokenRequest) (*TokenResponse, error) {
 	var response TokenResponse
 
-	refreshTokenUuid, err := jwt.VerifyRefreshToken(request.SessionJwt)
+	sessionUuid, err := jwt.VerifyRefreshToken(request.SessionJwt)
 	if err != nil {
 		return &response, HandlerError{401, "Invalid refresh token", err}
 	}
 
 	// find the refresh token record
 	sessionRecord, err := session.FindBy(sr.DB, map[string]interface{}{
-		"uuid": refreshTokenUuid,
+		"uuid": sessionUuid,
 	})
 	if err != nil {
 		return &response, HandlerError{401, "Invalid refresh token", err}

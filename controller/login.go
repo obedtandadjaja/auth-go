@@ -113,7 +113,7 @@ func processLoginRequest(sr *SharedResources, request *LoginRequest, r *http.Req
 	accessTokenChan := make(chan string)
 
 	go func() {
-		refreshTokenJwt, _ := jwt.GenerateRefreshToken(newSession.Uuid)
+		refreshTokenJwt, _ := jwt.GenerateRefreshToken(cred.Uuid, newSession.Uuid)
 		refreshTokenChan <- refreshTokenJwt
 	}()
 
