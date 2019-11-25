@@ -8,6 +8,6 @@ data:
   DB_HOST: 'localhost'
   DB_PORT: '3306'
   DB_USER: 'postgres'
-  DB_NAME: 'auth'
+  DB_NAME: 'auth-stg'
   APP_HOST: ''
   APP_PORT: '3000'
