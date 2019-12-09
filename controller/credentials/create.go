@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/obedtandadjaja/auth-go/auth/jwt"
 	"github.com/obedtandadjaja/auth-go/controller"
 	"github.com/obedtandadjaja/auth-go/models/credential"
@@ -65,8 +66,18 @@ func processCreateRequest(sr *controller.SharedResources, request *CreateRequest
 
 	err := cred.Create(sr.DB)
 	if err != nil {
+		if pgerr, ok := err.(*pq.Error); ok {
+			if pgerr.Code == "23505" {
+				return &response, controller.HandlerError{
+					400,
+					"Email has been taken",
+					err,
+				}
+			}
+		}
+
 		return &response, controller.HandlerError{
-			400,
+			500,
 			"Failed to create credential",
 			err,
 		}
@@ -80,7 +91,7 @@ func processCreateRequest(sr *controller.SharedResources, request *CreateRequest
 	}
 	err = newSession.Create(sr.DB)
 	if err != nil {
-		return &response, controller.HandlerError{500, "Internal Server Error", err}
+		return &response, controller.HandlerError{500, "Failed to create session", err}
 	}
 
 	sessionTokenChan := make(chan string)
