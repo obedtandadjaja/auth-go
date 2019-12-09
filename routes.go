@@ -60,6 +60,12 @@ var routes = Routes{
 		credentials.Delete,
 	},
 	Route{
+		"UpdateCredential",
+		"PUT",
+		"/credentials/{uuid}",
+		credentials.Update,
+	},
+	Route{
 		"ResetPassword",
 		"POST",
 		"/credentials/reset_password",
