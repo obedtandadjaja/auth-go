@@ -47,6 +47,44 @@ func (session *Session) Create(db *sql.DB) error {
 	return err
 }
 
+func Where(db *sql.DB, fields map[string]interface{}) ([]*Session, error) {
+    sessions := []*Session{}
+
+	var whereStatement []string
+	var whereValues []interface{}
+
+	index := 0
+	for k, v := range fields {
+		index++
+		whereStatement = append(whereStatement, fmt.Sprintf("%v = $%v", k, index))
+		whereValues = append(whereValues, v)
+	}
+
+	sql := "select * from sessions where " + strings.Join(whereStatement, " and ")
+
+    rows, err := db.Query(sql, whereValues...)
+    if err != nil {
+        return sessions, err
+    }
+    defer rows.Close()
+
+    for rows.Next() {
+        session, err := buildFromRow(rows)
+        if err != nil {
+            return sessions, err
+        }
+        sessions = append(sessions, session)
+    }
+
+    return sessions, nil
+}
+
+func (session *Session) Delete(db *sql.DB) error {
+	_, err := db.Exec("delete from sessions where id = $1", session.Id)
+
+	return err
+}
+
 func (session *Session) UpdateLastAccessedAt(db *sql.DB) error {
 	_, err := db.Exec(`update sessions set last_accessed_at = now() where id = $1`, session.Id)
 

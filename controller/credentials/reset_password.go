@@ -1,6 +1,7 @@
 package credentials
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -8,6 +9,7 @@ import (
 	"github.com/obedtandadjaja/auth-go/auth/hash"
 	"github.com/obedtandadjaja/auth-go/controller"
 	"github.com/obedtandadjaja/auth-go/models/credential"
+	"github.com/obedtandadjaja/auth-go/models/session"
 )
 
 type ResetPasswordRequest struct {
@@ -65,6 +67,19 @@ func processResetPasswordRequest(sr *controller.SharedResources, request *ResetP
 	if !hash.ValidatePasswordHash(request.PasswordResetToken, cred.Password.String) {
 		return &response, controller.HandlerError{401, "Wrong password reset token", err}
 	}
+
+    hashedNewPassword, err := hash.HashPassword(request.NewPassword)
+    cred.Update(sr.DB, map[string]interface{}{
+        "password": sql.NullString{String: hashedNewPassword, Valid: true},
+    })
+
+    // delete all sessions to force people to login again
+    sessions, err := session.Where(sr.DB, map[string]interface{}{
+        "credential_id": cred.Id,
+    })
+    for i := 0; i < len(sessions); i++ {
+        sessions[i].Delete(sr.DB)
+    }
 
 	response.Uuid = cred.Uuid
 	return &response, nil
